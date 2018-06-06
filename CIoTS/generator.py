@@ -1,5 +1,6 @@
 import networkx as nx
 import numpy as np
+import pandas as pd
 
 
 def node_name(time_series, l):
@@ -33,3 +34,18 @@ class CausalTSGenerator:
             picks = candidates[np.random.choice(candidates.shape[0], self.incoming_edges, replace=False)]
             for candidate in picks:
                 self.graph.add_edge(node_name(*candidate), node_name(d, 0), weight=0.6)
+
+        # Assume we have a covariance matrix
+        cov = None
+        start_sample = np.random.multivariate_normal(np.random.rand(cov.shape[0]), cov)
+        X = np.reshape(start_sample, (self.dimensions, self.max_p))
+
+        for _ in range(self.length):
+            X_t = []
+            for d in range(self.dimensions):
+                covar = np.reshape(cov[(self.max_p - 1) + d * self.max_p], (self.dimensions, self.max_p))
+                X_t.append([np.sum(start_sample[:, -self.max_p + 1:] * covar[:, :-1])])
+            X = np.append(X, X_t, axis=1)
+
+        X = X[:, self.max_p:]
+        return pd.DataFrame(X.T, columns=[f'X{i}' for i in range(self.dimensions)])
