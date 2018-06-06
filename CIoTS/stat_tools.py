@@ -1,6 +1,6 @@
-import numpy as np
-import pandas as pd
 from math import sqrt, log
+
+import numpy as np
 from scipy.stats import norm
 
 
@@ -16,14 +16,11 @@ def partial_corr(i, j, S, corr_matrix):
 
 
 def partial_corr_test(data_matrix, i, j, S, **kwargs):
-    if 'corr_matrix' in kwargs:
-        corr_matrix = kwargs['corr_matrix']
-    else:
-        corr_matrix = np.corrcoef(data_matrix, rowvar=False)
+    corr_matrix = kwargs.get('corr_matrix', np.corrcoef(data_matrix, rowvar=False))
     S = list(S)
     n = data_matrix.shape[0]
     r = partial_corr(i, j, S, corr_matrix)
     # fisher transform
-    z = sqrt(n - 3)*(1/2)*log((1+r)/(1-r))
+    z = sqrt(n - 3) * (1 / 2) * log((1 + r) / (1 - r))
     # p-test
-    return 2*norm.sf(abs(z))
+    return 2 * norm.sf(abs(z))

@@ -1,6 +1,8 @@
+import unittest
+
 import numpy as np
 import pandas as pd
-import unittest
+
 from CIoTS.tools import transform_ts
 
 

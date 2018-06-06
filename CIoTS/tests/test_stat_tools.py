@@ -1,5 +1,7 @@
-import numpy as np
 import unittest
+
+import numpy as np
+
 from CIoTS.stat_tools import partial_corr
 
 

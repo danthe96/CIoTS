@@ -1,7 +1,5 @@
-import numpy as np
-import pandas as pd
-import networkx as nx
 from itertools import permutations, combinations
+
 from sklearn.metrics import accuracy_score, \
                             matthews_corrcoef, \
                             f1_score
@@ -9,15 +7,15 @@ from sklearn.metrics import accuracy_score, \
 
 def _equalize_nodeset(true_graph, pred_graph):
     true_nodes = set(true_graph.nodes())
-    pred_nodes = set(pre_graph.nodes)
+    pred_nodes = set(pred_graph.nodes)
     if true_nodes.issubset(pred_nodes):
         node_diff = pred_nodes.difference(true_nodes)
         true_graph.add_nodes_from(list(node_diff))
     elif pred_nodes.issubset(true_nodes):
         node_diff = true_nodes.difference(pred_nodes)
-        pre_graph.add_nodes_from(list(node_diff))
+        pred_graph.add_nodes_from(list(node_diff))
     else:
-        raise StandardError("incomparable graphs")
+        raise Exception("incomparable graphs")
     return true_graph, pred_graph
 
 
