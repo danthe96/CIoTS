@@ -6,9 +6,10 @@ def transform_ts(ts, p):
     l = ts.shape[0]
     time_shifted = []
     for t in range(p+1):
-        time_shifted.append(ts.iloc[p-t, l-t].add_suffix('_'+str(i)))
-    data_frame = pd.concat(time_shifted, axis=1, ignore_index=True)
-
+        to_append = ts.iloc[p-t: l-t].add_suffix('_'+str(t))
+        to_append.reset_index(drop=True, inplace=True)
+        time_shifted.append(to_append)
+    data_frame = pd.concat(time_shifted, axis=1)
     data_matrix = data_frame.as_matrix()
     node_mapping = {i: data_frame.columns[i]
                     for i in range(data_frame.shape[1])}
