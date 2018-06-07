@@ -2,6 +2,7 @@ from math import sqrt, log
 
 import numpy as np
 from scipy.stats import norm
+from scipy.linalg import pinv, pinv2, lstsq
 
 
 def partial_corr(i, j, S, corr_matrix):
@@ -11,12 +12,13 @@ def partial_corr(i, j, S, corr_matrix):
     indices = [i, j]+S
     sub_corr_matrix = corr_matrix[indices, :][:, indices]
     # pseudo inverse matrix
-    p_matrix = np.linalg.pinv(sub_corr_matrix)
+    p_matrix = pinv(sub_corr_matrix)
     return p_matrix[0, 1]/sqrt(p_matrix[0, 0]*p_matrix[1, 1])
 
 
 def partial_corr_test(data_matrix, i, j, S, **kwargs):
-    corr_matrix = kwargs.get('corr_matrix', np.corrcoef(data_matrix, rowvar=False))
+    corr_matrix = kwargs.get('corr_matrix',
+                             np.corrcoef(data_matrix, rowvar=False))
     S = list(S)
     n = data_matrix.shape[0]
     r = partial_corr(i, j, S, corr_matrix)

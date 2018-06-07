@@ -23,14 +23,15 @@ def evaluate_edges(true_graph, pred_graph, directed=True):
     true_graph, pred_graph = _equalize_nodeset(true_graph, pred_graph)
     truth = []
     prediction = []
-    if directed:
-        for u, v in permutations(true_graph.nodes(), 2):
-            truth.append(true_graph.has_edge(u, v))
-            prediction.append(prediction.has_edge(u, v))
+    if not directed:
+        true_graph = true_graph.to_undirected()
+        pred_graph = pred_graph.to_undirected()
+        node_pairs = [(u, v) for (u, v) in combinations(true_graph.nodes(), 2)]
     else:
-        for u, v in combinations(true_graph.nodes(), 2):
-            truth.append(true_graph.has_edge(u, v) or true_graph.has_edge(v, u))
-            prediction.append(prediction.has_edge(u, v) or prediction.has_edge(v, u))
+        node_pairs = [(u, v) for (u, v) in permutations(true_graph.nodes(), 2)]
+    for u, v in node_pairs:
+        truth.append(true_graph.has_edge(u, v))
+        prediction.append(pred_graph.has_edge(u, v))
     return {'accuracy': accuracy_score(truth, prediction),
             'f1-score': f1_score(truth, prediction),
             'matthews_corrcoef': matthews_corrcoef(truth, prediction)}
