@@ -35,19 +35,18 @@ class CausalTSGenerator:
             remaining_edges = self.incoming_edges - (1 if d_t == d else 0)
             picks = candidates[np.random.choice(candidates.shape[0], remaining_edges, replace=False)]
             for candidate in picks:
-                self.graph.add_edge(node_name(*candidate), node_name(d, 0), weight=np.random.normal(scale=7.5))
+                self.graph.add_edge(node_name(*candidate), node_name(d, 0), weight=np.random.normal())
 
         adjacency = np.array(nx.adjacency_matrix(self.graph).todense())
-        # start_sample = np.random.normal(size=(self.dimensions, self.max_p))
         start_sample = np.pad(np.random.normal(size=(self.dimensions, 1)), [(0, 0), (self.max_p-1, 0)], 'constant')
         X = start_sample  # TODO: Find better method to initialize
 
         for _ in range(self.data_length):
             X_t = []
             for d in range(self.dimensions):
-                combination = np.reshape(adjacency[:, self.max_p], (self.dimensions, self.length))[:, :-1]
+                combination = np.reshape(adjacency[:, self.max_p + d * self.length],
+                                         (self.dimensions, self.length))[:, :-1]
                 X_d_t = [np.sum(X[:, -self.max_p:] * combination) + np.random.normal()]
-                # import IPython; IPython.embed()
                 X_t.append(X_d_t)
             X = np.append(X, X_t, axis=1)
 
