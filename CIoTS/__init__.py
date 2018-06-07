@@ -1,5 +1,6 @@
-from .generator import CausalTSGenerator
+from .generator import CausalTSGenerator, node_name
 
 __all__ = [
-    'CausalTSGenerator'
+    'CausalTSGenerator',
+    'node_name'
 ]

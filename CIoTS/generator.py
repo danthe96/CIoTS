@@ -1,3 +1,6 @@
+from itertools import product
+
+import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
@@ -38,7 +41,10 @@ class CausalTSGenerator:
                 self.graph.add_edge(node_name(*candidate), node_name(d, 0), weight=np.random.normal())
 
         adjacency = np.array(nx.adjacency_matrix(self.graph).todense())
-        start_sample = np.pad(np.random.normal(size=(self.dimensions, 1)), [(0, 0), (self.max_p-1, 0)], 'constant')
+        start_sample = np.pad(
+            np.random.normal(scale=1e-8, size=(self.dimensions, 1)),
+            [(0, 0), (self.max_p-1, 0)], 'constant'
+        )
         X = start_sample  # TODO: Find better method to initialize
 
         for _ in range(self.data_length):
@@ -52,3 +58,10 @@ class CausalTSGenerator:
 
         X = X[:, self.max_p:]
         return pd.DataFrame(X.T, columns=[f'X{i}' for i in range(self.dimensions)])
+
+    def draw_graph(self):
+        positions = []
+        for i, j in product(range(self.dimensions), range(self.length)):
+            positions.append((node_name(i, j), (self.max_p-j, self.dimensions-i)))
+        nx.draw(self.graph, pos=dict(positions), with_labels=True)
+        plt.show()
