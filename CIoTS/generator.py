@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import networkx as nx
 import numpy as np
 import pandas as pd
+from statsmodels.tsa.vector_ar.var_model import is_stable
 
 
 def node_name(time_series, l):
@@ -22,6 +23,27 @@ class CausalTSGenerator:
         np.random.seed(random_state)
 
     def generate(self):
+        stable_var = False
+        while not stable_var:
+            VAR_exog = self._generate_graph()
+            stable_var = is_stable(VAR_exog)
+        self.VAR_exog = VAR_exog
+
+        start_sample = np.pad(
+            np.random.normal(scale=1e-8, size=(self.dimensions, 1)),
+            [(0, 0), (self.max_p-1, 0)], 'constant'
+        )
+        X = start_sample  # TODO: Find better method to initialize
+
+        for _ in range(self.data_length):
+            X_t = np.sum([np.dot(VAR_exog[-i], X[:, -i]) for i in range(1, self.max_p+1)], axis=0) + \
+                  np.random.normal()
+            X = np.append(X, np.expand_dims(X_t, axis=1), axis=1)
+
+        X = X[:, self.max_p:]
+        return pd.DataFrame(X.T, columns=[f'X{i}' for i in range(self.dimensions)])
+
+    def _generate_graph(self):
         self.graph = nx.DiGraph()
         node_ids = np.array([[(d, l) for l in range(self.max_p, -1, -1)] for d in range(self.dimensions)])
         self.graph.add_nodes_from([node_name(d, l) for d, l in
@@ -41,23 +63,12 @@ class CausalTSGenerator:
                 self.graph.add_edge(node_name(*candidate), node_name(d, 0), weight=np.random.normal())
 
         adjacency = np.array(nx.adjacency_matrix(self.graph).todense())
-        start_sample = np.pad(
-            np.random.normal(scale=1e-8, size=(self.dimensions, 1)),
-            [(0, 0), (self.max_p-1, 0)], 'constant'
-        )
-        X = start_sample  # TODO: Find better method to initialize
-
-        for _ in range(self.data_length):
-            X_t = []
-            for d in range(self.dimensions):
-                combination = np.reshape(adjacency[:, self.max_p + d * self.length],
-                                         (self.dimensions, self.length))[:, :-1]
-                X_d_t = [np.sum(X[:, -self.max_p:] * combination) + np.random.normal()]
-                X_t.append(X_d_t)
-            X = np.append(X, X_t, axis=1)
-
-        X = X[:, self.max_p:]
-        return pd.DataFrame(X.T, columns=[f'X{i}' for i in range(self.dimensions)])
+        VAR_exog = []
+        target = [self.max_p + d * self.length for d in range(self.dimensions)]
+        for i in range(self.max_p):
+            source = [i + d * self.length for d in range(self.dimensions)]
+            VAR_exog.append(adjacency[:, target][source].T)
+        return np.array(VAR_exog)
 
     def draw_graph(self):
         positions = []
