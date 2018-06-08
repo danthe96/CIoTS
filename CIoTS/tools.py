@@ -9,7 +9,7 @@ def transform_ts(ts, p):
         to_append.reset_index(drop=True, inplace=True)
         time_shifted.append(to_append)
     data_frame = pd.concat(time_shifted, axis=1)
-    data_matrix = data_frame.as_matrix()
+    data_matrix = data_frame.values
     node_mapping = {i: data_frame.columns[i]
                     for i in range(data_frame.shape[1])}
     return node_mapping, data_matrix

@@ -2,7 +2,7 @@ from math import sqrt, log
 
 import numpy as np
 from scipy.stats import norm
-from scipy.linalg import pinv, pinv2, lstsq
+from scipy.linalg import pinv
 
 
 def partial_corr(i, j, S, corr_matrix):
