@@ -26,7 +26,7 @@ class CausalTSGenerator:
         stable_var = False
         while not stable_var:
             VAR_exog = self._generate_graph()
-            stable_var = is_stable(VAR_exog)
+            stable_var = is_stable(VAR_exog[::-1])
         self.VAR_exog = VAR_exog
 
         start_sample = np.pad(
