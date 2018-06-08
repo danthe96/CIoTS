@@ -5,7 +5,7 @@ def transform_ts(ts, p):
     length = ts.shape[0]
     time_shifted = []
     for t in range(p+1):
-        to_append = ts.iloc[p - t: length - t].add_suffix('_' + str(t))
+        to_append = ts.iloc[p - t: length - t].add_suffix('_t-' + str(t) if t > 0 else '_t')
         to_append.reset_index(drop=True, inplace=True)
         time_shifted.append(to_append)
     data_frame = pd.concat(time_shifted, axis=1)

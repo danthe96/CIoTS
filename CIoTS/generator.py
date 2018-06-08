@@ -1,4 +1,4 @@
-from itertools import product
+import re
 
 import matplotlib.pyplot as plt
 import networkx as nx
@@ -8,7 +8,21 @@ from statsmodels.tsa.vector_ar.var_model import is_stable
 
 
 def node_name(time_series, l):
-        return f'X{time_series}_t-{l}' if l > 0 else f'X{time_series}_t'
+    return f'X{time_series}_t-{l}' if l > 0 else f'X{time_series}_t'
+
+
+def node_id(name):
+    regex = re.search(r'X(\d+)_t(-(\d+))?', name)
+    return int(regex.group(1)), int(regex.group(3) or 0)
+
+
+def draw_graph(graph, dimensions, max_p):
+    positions = {}
+    for node in graph.nodes():
+        i, j = node_id(node)
+        positions[node] = (max_p-j, dimensions-i)
+    nx.draw(graph, pos=positions, with_labels=True)
+    plt.show()
 
 
 class CausalTSGenerator:
@@ -71,8 +85,4 @@ class CausalTSGenerator:
         return np.array(VAR_exog)
 
     def draw_graph(self):
-        positions = []
-        for i, j in product(range(self.dimensions), range(self.length)):
-            positions.append((node_name(i, j), (self.max_p-j, self.dimensions-i)))
-        nx.draw(self.graph, pos=dict(positions), with_labels=True)
-        plt.show()
+        draw_graph(self.graph, self.dimensions, self.max_p)
