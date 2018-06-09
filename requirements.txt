@@ -12,3 +12,4 @@ statsmodels
 # CircleCI
 flake8
 pytest
+vulture
