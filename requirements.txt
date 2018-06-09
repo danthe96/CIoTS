@@ -1,9 +1,10 @@
+jupyter
+matplotlib
+networkx
+notebook
 numpy
 pandas
-scipy
-matplotlib
-jupyter
-notebook
-networkx
 pcalg
+scipy
+sklearn
 statsmodels
