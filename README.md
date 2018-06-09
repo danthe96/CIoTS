@@ -29,7 +29,7 @@ To visualize based on what model the dataset has been generated, we can visualiz
 plt.title('Original graph')
 generator.draw_graph()
 ```
-![Original graph](https://user-images.githubusercontent.com/2228622/41195069-25c32538-6c27-11e8-8abb-7d4205fb1a7d.png)
+![Original graph](https://user-images.githubusercontent.com/2228622/41195070-25e082cc-6c27-11e8-873f-16b003b7b998.png)
 
 To estimate the graph, we run Chen's algorithm and render the result as graph.
 
@@ -41,7 +41,7 @@ predicted_graph = pc_chen(partial_corr_test, data, p=4, alpha=0.05)
 plt.title('Estimated graph')
 draw_graph(predicted_graph, dimensions=3, max_p=4)
 ```
-![Estimated graph](https://user-images.githubusercontent.com/2228622/41195070-25e082cc-6c27-11e8-873f-16b003b7b998.png)
+![Estimated graph](https://user-images.githubusercontent.com/2228622/41195069-25c32538-6c27-11e8-8abb-7d4205fb1a7d.png)
 
 We can also print metrics of the algorithm's accuracy.
 ```
