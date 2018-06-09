@@ -8,4 +8,7 @@ pcalg
 scipy
 sklearn
 statsmodels
+
+# CircleCI
 flake8
+pytest
