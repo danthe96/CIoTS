@@ -21,7 +21,7 @@ def draw_graph(graph, dimensions, max_p):
     for node in graph.nodes():
         i, j = node_id(node)
         positions[node] = (max_p-j, dimensions-i)
-    nx.draw(graph, pos=positions, with_labels=True)
+    nx.draw(graph, pos=positions, with_labels=True, font_size=10, node_size=1000)
     plt.show()
 
 
