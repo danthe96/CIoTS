@@ -1,8 +1,8 @@
-# CIoTS
+# CIoTS [![python version](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/) [![CircleCI](https://circleci.com/gh/danthe96/CIoTS.svg?style=svg)](https://circleci.com/gh/danthe96/CIoTS)
 This repository implements an approach for **C**ausal **I**nference **o**n **T**ime **S**eries. It is heavily based on a paper by Chen, ["A time series causal model"](https://mpra.ub.uni-muenchen.de/24841/1/MPRA_paper_24841.pdf).  
 It also contains the base implementation of Chen's algorithm and a simple time series data generator.
 
-## Installation [![python version](https://img.shields.io/badge/python-3.6-blue.svg)](https://www.python.org/downloads/)
+## Installation
 ```
 pip install -U -r requirements.txt
 ```
