@@ -51,4 +51,6 @@ pd.DataFrame(evaluate_edges(generator.graph, predicted_graph), index=[0])
 ```
 ![Metrics](https://user-images.githubusercontent.com/2228622/41195078-418f87c0-6c27-11e8-8fd5-9b1b719097a1.png)
 
+## Our research
+
 The above tutorial runs Chen's base algorithm. Our research will focus on estimating `max_p` automatically and estimating the graph iteratively. This is still work in progress.
