@@ -8,3 +8,4 @@ pcalg
 scipy
 sklearn
 statsmodels
+flake8
