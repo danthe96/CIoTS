@@ -11,8 +11,8 @@ class TestTool(unittest.TestCase):
     def test_transform_test(self):
         p = 3
         df = pd.DataFrame({'a': np.arange(100), 'b': np.arange(100, 200)})
-        expected_mapping = {0: 'a_0', 1: 'b_0', 2: 'a_1', 3: 'b_1',
-                            4: 'a_2', 5: 'b_2', 6: 'a_3', 7: 'b_3'}
+        expected_mapping = {0: 'a_t', 1: 'b_t', 2: 'a_t-1', 3: 'b_t-1',
+                            4: 'a_t-2', 5: 'b_t-2', 6: 'a_t-3', 7: 'b_t-3'}
         expected_matrix = np.array([np.arange(3, 100), np.arange(103, 200),
                                     np.arange(2, 99), np.arange(102, 199),
                                     np.arange(1, 98), np.arange(101, 198),
