@@ -13,7 +13,7 @@ def partial_corr(i, j, S, corr_matrix):
     sub_corr_matrix = corr_matrix[indices, :][:, indices]
     # pseudo inverse matrix
     p_matrix = pinv(sub_corr_matrix)
-    return p_matrix[0, 1]/sqrt(p_matrix[0, 0]*p_matrix[1, 1])
+    return p_matrix[i, j]/sqrt(p_matrix[i, i]*p_matrix[j, j])
 
 
 def partial_corr_test(data_matrix, i, j, S, **kwargs):

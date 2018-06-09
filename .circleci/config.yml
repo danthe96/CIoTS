@@ -50,6 +50,7 @@ jobs:
             . venv/bin/activate
             echo "backend: Agg" > /home/circleci/repo/venv/lib/python3.6/site-packages/matplotlib/mpl-data/matplotlibrc
             flake8
+            py.test
             vulture . --exclude=third_party,venv || true
 
       - store_artifacts:
