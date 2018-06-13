@@ -11,5 +11,6 @@ statsmodels
 
 # CircleCI
 flake8
+flake8_formatter_junit_xml
 pytest
 vulture
