@@ -16,7 +16,7 @@ class TestStatTools(unittest.TestCase):
         corr = np.corrcoef(data, rowvar=False)
 
         corr_xy = 0.97
-        corr_xy_z = -0.92
+        corr_xy_z = 0.92
         result_xy = partial_corr(0, 1, {}, corr)
         result_xy_z = partial_corr(0, 1, {2}, corr)
         self.assertAlmostEqual(corr_xy, result_xy, delta=0.01)
