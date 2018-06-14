@@ -39,20 +39,15 @@ jobs:
             - ./venv
           key: v1-dependencies-{{ checksum "requirements.txt" }}
         
-      # run tests!
-      # this example uses Django's built-in test-runner
-      # other common Python testing frameworks include pytest and nose
-      # https://pytest.org
-      # https://nose.readthedocs.io
+      # Run tests
       - run:
           name: run tests
           command: |
             . venv/bin/activate
             echo "backend: Agg" > /home/circleci/repo/venv/lib/python3.6/site-packages/matplotlib/mpl-data/matplotlibrc
-            flake8
-            py.test
+            flake8 --format junit-xml --output-file=.circleci/test-reports/flake8/flake8.xml
+            pytest --junitxml=.circleci/test-reports/pytest/pytest.xml
             vulture . --exclude=third_party,venv || true
 
-      - store_artifacts:
-          path: test-reports
-          destination: test-reports
+      - store_test_results:
+          path: .circleci/test-reports

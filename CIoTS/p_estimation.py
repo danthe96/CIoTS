@@ -15,7 +15,7 @@ def bic(ll, params, nobs):
     return ll + (np.log(nobs) / nobs) * params
 
 
-def aic(ll, params, nobs): 
+def aic(ll, params, nobs):
     return ll + (2. / nobs) * params
 
 
