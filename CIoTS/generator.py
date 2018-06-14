@@ -37,25 +37,29 @@ class CausalTSGenerator:
         np.random.seed(random_state)
 
     def generate(self):
-        stable_var = False
-        while not stable_var:
-            VAR_exog = self._generate_graph()
-            stable_var = is_stable(VAR_exog[::-1])
-        self.VAR_exog = VAR_exog
+        if self.graph is None:
+            self.generate_stable_graph()
 
         start_sample = np.pad(
             np.random.normal(scale=1e-8, size=(self.dimensions, 1)),
             [(0, 0), (self.max_p-1, 0)], 'constant'
         )
-        X = start_sample  # TODO: Find better method to initialize
+        X = start_sample
 
         for _ in range(self.data_length):
-            X_t = np.sum([np.dot(VAR_exog[-i], X[:, -i]) for i in range(1, self.max_p+1)], axis=0) + \
+            X_t = np.sum([np.dot(self.VAR_exog[-i], X[:, -i]) for i in range(1, self.max_p+1)], axis=0) + \
                   np.random.normal()
             X = np.append(X, np.expand_dims(X_t, axis=1), axis=1)
 
         X = X[:, self.max_p:]
         return pd.DataFrame(X.T, columns=[f'X{i}' for i in range(self.dimensions)])
+
+    def generate_stable_graph(self):
+        stable_var = False
+        while not stable_var:
+            VAR_exog = self._generate_graph()
+            stable_var = is_stable(VAR_exog[::-1])
+        self.VAR_exog = VAR_exog
 
     def _generate_graph(self):
         self.graph = nx.DiGraph()
