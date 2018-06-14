@@ -1,8 +1,10 @@
 from itertools import permutations, combinations
-
+import numpy as np
 from sklearn.metrics import accuracy_score, \
                             matthews_corrcoef, \
-                            f1_score
+                            f1_score, \
+                            precision_score, \
+                            recall_score
 
 
 def _equalize_nodeset(true_graph, pred_graph):
@@ -17,6 +19,13 @@ def _equalize_nodeset(true_graph, pred_graph):
     else:
         raise Exception("incomparable graphs")
     return true_graph, pred_graph
+
+
+def _fpr(truth, prediction):
+    truth = np.array(truth).astype(bool)
+    prediction = np.array(prediction).astype(bool)
+    fp = prediction & (~truth)
+    return fp.sum()/(~truth).sum()
 
 
 def evaluate_edges(true_graph, pred_graph, directed=True):
@@ -34,4 +43,8 @@ def evaluate_edges(true_graph, pred_graph, directed=True):
         prediction.append(pred_graph.has_edge(u, v))
     return {'accuracy': accuracy_score(truth, prediction),
             'f1-score': f1_score(truth, prediction),
+            'precision': precision_score(truth, prediction),
+            'FDR': 1 - precision_score(truth, prediction),
+            'TPR': recall_score(truth, prediction),
+            'FPR': _fpr(truth, prediction),
             'matthews_corrcoef': matthews_corrcoef(truth, prediction)}

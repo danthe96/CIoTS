@@ -14,7 +14,7 @@ def pc_chen(indep_test_func, ts_data, p, alpha):
     adj_matrix = np.ones((data_matrix.shape[1], data_matrix.shape[1]))
     np.fill_diagonal(adj_matrix, 0)
     G = nx.from_numpy_matrix(adj_matrix)
-    
+
     G, sep_sets = _estimate_skeleton(G, partial_corr_test, data_matrix,
                                      alpha, corr_matrix=corr_matrix)
 
