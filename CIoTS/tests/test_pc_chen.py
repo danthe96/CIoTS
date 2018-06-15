@@ -10,7 +10,7 @@ from CIoTS import pc_chen
 
 class TestPcChen(unittest.TestCase):
 
-    @patch('CIoTS.pc_chen_algorithm.estimate_skeleton')
+    @patch('CIoTS.pc_chen_algorithm._estimate_skeleton')
     def test_pc_chen(self, mock_estimate_skeleton):
         ts = pd.DataFrame({'a': np.arange(4), 'b': np.arange(4)})
         p = 1
