@@ -33,6 +33,7 @@ class CausalTSGenerator:
         self.length = max_p + 1
         self.data_length = data_length
         self.incoming_edges = incoming_edges
+        self.graph = None
 
         np.random.seed(random_state)
 

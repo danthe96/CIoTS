@@ -51,7 +51,7 @@ def _estimate_skeleton(g, indep_test_func, data_matrix, alpha, **kwargs):
     node_size = data_matrix.shape[1]
     sep_set = [[set() for i in range(node_size)] for j in range(node_size)]
 
-    l = 0
+    subset_size = 0
     while True:
         cont = False
         remove_edges = []
@@ -62,10 +62,10 @@ def _estimate_skeleton(g, indep_test_func, data_matrix, alpha, **kwargs):
             else:
                 adj_i.remove(j)
                 pass
-            if len(adj_i) >= l:
-                if len(adj_i) < l:
+            if len(adj_i) >= subset_size:
+                if len(adj_i) < subset_size:
                     continue
-                for k in combinations(adj_i, l):
+                for k in combinations(adj_i, subset_size):
                     p_val = indep_test_func(data_matrix, i, j, set(k),
                                             **kwargs)
                     if p_val > alpha:
@@ -78,12 +78,12 @@ def _estimate_skeleton(g, indep_test_func, data_matrix, alpha, **kwargs):
                         sep_set[j][i] |= set(k)
                         break
                 cont = True
-        l += 1
+        subset_size += 1
         if method_stable(kwargs):
             g.remove_edges_from(remove_edges)
         if cont is False:
             break
-        if ('max_reach' in kwargs) and (l > kwargs['max_reach']):
+        if ('max_reach' in kwargs) and (subset_size > kwargs['max_reach']):
             break
 
     return (g, sep_set)
