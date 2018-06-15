@@ -5,6 +5,7 @@ from .evaluation import evaluate_edges
 from .p_estimation import var_order_select
 from .stat_tools import partial_corr, partial_corr_test
 from .tools import transform_ts
+from .simple_var import VAR
 
 __all__ = [
     'CausalTSGenerator',
@@ -16,5 +17,6 @@ __all__ = [
     'var_order_select',
     'partial_corr',
     'partial_corr_test',
-    'transform_ts'
+    'transform_ts',
+    'VAR'
 ]
