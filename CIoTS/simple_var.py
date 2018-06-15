@@ -1,5 +1,10 @@
+from itertools import product
+
+import networkx as nx
 import numpy as np
-from CIoTS.tools import transform_ts
+
+from .tools import transform_ts
+from .generator import node_name
 
 
 class VAR():
@@ -22,6 +27,25 @@ class VAR():
         self.sse = np.dot(self.residuals.T, self.residuals)
         self.sigma_u = self.sse/(self.length - self.dim*self.p - 1)
         self.is_fitted = True
+
+    def to_graph(self, threshold=0.1):
+        end_nodes = ['X{}_t'.format(i) for i in range(self.dim)]
+        start_nodes = ['X{}_t-{}'.format(j, i) for i, j in product(range(self.p, 0, -1), range(self.dim))]
+
+        A = self.params[1:]
+        assert A.shape == (len(start_nodes), len(end_nodes))
+        edges = []
+        for i in range(len(start_nodes)):
+            for j in range(len(end_nodes)):
+                if np.abs(A[i][j]) > threshold:
+                    edges.append((start_nodes[i], end_nodes[j]))
+
+        estimated_graph = nx.DiGraph()
+        node_ids = np.array([[(d, l) for l in range(self.p, -1, -1)] for d in range(self.dim)])
+        estimated_graph.add_nodes_from([node_name(d, l) for d, l in
+                                       np.reshape(node_ids, (self.dim * (self.p+1), 2))])
+        estimated_graph.add_edges_from(edges)
+        return estimated_graph
 
     def information_criterion(self, ic, offset=0, free_params=None):
         if not self.is_fitted:
