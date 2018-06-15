@@ -52,7 +52,6 @@ def pc_incremental(indep_test, ts, alpha=0.05, max_p=20,
                                      corr_matrix=corr_matrix)
                 if p_value > alpha:
                     G.remove_edge(x, x_t)
-                    ins_set = in_set - set([x])
 
         # check stopping criterion if exists
         if stopping is not None:
