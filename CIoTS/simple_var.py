@@ -18,9 +18,45 @@ class VAR():
         X_ = np.insert(X, 0, 1, axis=1)
 
         self.params = np.linalg.lstsq(X_, y, rcond=1e-15)[0]
+        self.free_params = self.params.size
         self.residuals = y - np.dot(X_, self.params)
         self.sse = np.dot(self.residuals.T, self.residuals)
-        self.sigma_u = self.sse/(self.length - self.dim*self.p - 1)
+        # self.sigma_u = self.sse/(self.length - self.dim*self.p - 1)
+        self.sigma_u = self.sse/self.length
+        self.is_fitted = True
+
+    def fit_from_graph(self, dim, data_matrix, graph, mapping=None):
+        self.dim = dim
+        self.length = data_matrix.shape[0]
+        self.inputs = []
+        self.params = np.zeros((self.dim, self.dim * self.p + 1))
+        self.free_params = 0
+
+        if mapping is None:
+            mapping = {n: n for n in graph.nodes()}
+        inverted_mapping = {v: k for k, v in mapping.items()}
+
+        for x_t in range(self.dim):
+            input_nodes = list(graph.predecessors(mapping[x_t]))
+            inputs = np.array([inverted_mapping[x] for x in input_nodes])
+
+            y = data_matrix[:, x_t]
+            X = data_matrix[:, inputs]
+            X_ = np.insert(X, 0, 1, axis=1)
+            params = np.linalg.lstsq(X_, y, rcond=1e-15)[0]
+
+            positions = np.insert(inputs - self.dim + 1, 0, 0)
+            self.params[x_t, positions] = params
+            self.free_params += params.size
+        self.params = np.array(self.params).T
+
+        y = data_matrix[:, :self.dim]
+        X = data_matrix[:, self.dim: self.dim*(self.p+1)]
+        X_ = np.insert(X, 0, 1, axis=1)
+        self.residuals = y - np.dot(X_, self.params)
+        self.sse = np.dot(self.residuals.T, self.residuals)
+        # not sure whether this is ok
+        self.sigma_u = self.sse/self.length
         self.is_fitted = True
 
     def information_criterion(self, ic, offset=0, free_params=None):
@@ -28,7 +64,7 @@ class VAR():
             raise Exception('model is not fitted')
         ll = self._log_likelihood()
         if free_params is None:
-            free_params = self._free_params()
+            free_params = self.free_params
         nobs = self.length-offset
 
         if ic == 'bic':
@@ -52,6 +88,3 @@ class VAR():
     def _log_likelihood(self):
         _, logdet = np.linalg.slogdet(self.sigma_u)
         return logdet
-
-    def _free_params(self):
-        return self.p * self.dim**2 + self.dim

@@ -2,12 +2,19 @@ import networkx as nx
 import numpy as np
 from CIoTS.pc_chen_algorithm import pc_chen_modified
 from CIoTS.tools import transform_ts
+from CIoTS.simple_var import VAR
 from itertools import product
 from time import time
 
 
+def _graph_bic(p, dim, data_matrix, graph):
+    model = VAR(p)
+    model.fit_from_graph(dim, data_matrix, graph)
+    return model.information_criterion('bic')
+
+
 def pc_incremental(indep_test, ts, alpha=0.05, max_p=20,
-                   start=0, steps=1, stopping=None, verbose=False, **kwargs):
+                   start=0, steps=1, verbose=False, **kwargs):
     # precalculated information
     dim = ts.shape[1]
     node_mapping, data_matrix = transform_ts(ts, max_p)
@@ -16,6 +23,7 @@ def pc_incremental(indep_test, ts, alpha=0.05, max_p=20,
     # verbose information
     graphs = {}
     times = {}
+    bics = {}
 
     # initial graph
     present_nodes = range(dim)
@@ -24,6 +32,7 @@ def pc_incremental(indep_test, ts, alpha=0.05, max_p=20,
         G = pc_chen_modified(indep_test, ts, start, alpha)
         times[start] = time() - start_time
         graphs[start] = nx.relabel_nodes(G.copy(), node_mapping)
+        bics[start] = _graph_bic(start, dim, data_matrix, G)
     else:
         G = nx.DiGraph()
         G.add_nodes_from(present_nodes)
@@ -53,20 +62,15 @@ def pc_incremental(indep_test, ts, alpha=0.05, max_p=20,
                 if p_value > alpha:
                     G.remove_edge(x, x_t)
 
-        # check stopping criterion if exists
-        if stopping is not None:
-            stop = stopping(G, data_matrix, **kwargs)
-        else:
-            stop = False
-
         # verbose information
         graphs[p] = nx.relabel_nodes(G.copy(), node_mapping)
         times[p] = time() - start_time
+        bics[p] = _graph_bic(p, dim, data_matrix, G)
 
-        if stop:
-            break
+        # if stop:
+        #    break
 
     if verbose:
-        return nx.relabel_nodes(G, node_mapping), graphs, times
+        return nx.relabel_nodes(G, node_mapping), graphs, times, bics
     else:
         return nx.relabel_nodes(G, node_mapping)
