@@ -70,17 +70,16 @@ class VAR():
 
         A = self.params[1:]
         assert A.shape == (len(start_nodes), len(end_nodes))
-        edges = []
-        for i in range(len(start_nodes)):
-            for j in range(len(end_nodes)):
-                if np.abs(A[i][j]) > threshold:
-                    edges.append((start_nodes[i], end_nodes[j]))
 
         estimated_graph = nx.DiGraph()
         node_ids = np.array([[(d, l) for l in range(self.p, -1, -1)] for d in range(self.dim)])
         estimated_graph.add_nodes_from([node_name(d, l) for d, l in
                                        np.reshape(node_ids, (self.dim * (self.p+1), 2))])
-        estimated_graph.add_edges_from(edges)
+
+        for i in range(len(start_nodes)):
+            for j in range(len(end_nodes)):
+                if np.abs(A[i][j]) > threshold:
+                    estimated_graph.add_edge(start_nodes[i], end_nodes[j], weight=A[i][j])
         return estimated_graph
 
     def information_criterion(self, ic, offset=0, free_params=None):
