@@ -7,14 +7,15 @@ from itertools import product
 from time import time
 
 
-def _graph_bic(p, dim, data_matrix, graph):
+def _graph_ic(p, dim, data_matrix, graph, ic='bic'):
+    free_params = len(graph.edges()) + len(graph.nodes())
     model = VAR(p)
     model.fit_from_graph(dim, data_matrix, graph)
-    return model.information_criterion('bic')
+    return model.information_criterion(ic, free_params=free_params)
 
 
-def pc_incremental(indep_test, ts, alpha=0.05, max_p=20,
-                   start=0, steps=1, verbose=False, **kwargs):
+def pc_incremental(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
+                   ic='bic', patiency=1, verbose=False, **kwargs):
     # precalculated information
     dim = ts.shape[1]
     node_mapping, data_matrix = transform_ts(ts, max_p)
@@ -32,10 +33,16 @@ def pc_incremental(indep_test, ts, alpha=0.05, max_p=20,
         G = pc_chen_modified(indep_test, ts, start, alpha)
         times[start] = time() - start_time
         graphs[start] = nx.relabel_nodes(G.copy(), node_mapping)
-        bics[start] = _graph_bic(start, dim, data_matrix, G)
+        bics[start] = _graph_ic(start, dim, data_matrix, G, ic)
+        best_bic = bics[start]
+        best_p = start
     else:
         G = nx.DiGraph()
         G.add_nodes_from(present_nodes)
+        best_bic = np.inf
+        best_p = 0
+
+    no_imp = 0
 
     # iteration step
     for p in range(start+steps, max_p+1, steps):
@@ -65,12 +72,19 @@ def pc_incremental(indep_test, ts, alpha=0.05, max_p=20,
         # verbose information
         graphs[p] = nx.relabel_nodes(G.copy(), node_mapping)
         times[p] = time() - start_time
-        bics[p] = _graph_bic(p, dim, data_matrix, G)
+        bics[p] = _graph_ic(p, dim, data_matrix, G, ic)
 
-        # if stop:
-        #    break
+        # early stopping
+        if bics[p] < best_bic:
+            best_bic = bics[p]
+            best_p = p
+            no_imp = 0
+        else:
+            no_imp += 1
+            if no_imp >= patiency:
+                break
 
     if verbose:
-        return nx.relabel_nodes(G, node_mapping), graphs, times, bics
+        return nx.relabel_nodes(graphs[best_p], node_mapping), graphs, times, bics
     else:
-        return nx.relabel_nodes(G, node_mapping)
+        return nx.relabel_nodes(graphs[best_p], node_mapping)
