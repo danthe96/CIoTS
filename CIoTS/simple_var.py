@@ -43,18 +43,19 @@ class VAR():
 
         for x_t in range(self.dim):
             input_nodes = list(graph.predecessors(mapping[x_t]))
-            inputs = np.array([inverted_mapping[x] for x in input_nodes])
 
-            y = data_matrix[:, x_t]
-            X = data_matrix[:, inputs]
-            X_ = np.insert(X, 0, 1, axis=1)
-            params = np.linalg.lstsq(X_, y, rcond=1e-15)[0]
+            if input_nodes:
+                inputs = np.array([inverted_mapping[x] for x in input_nodes])
+                y = data_matrix[:, x_t]
+                X = data_matrix[:, inputs]
+                X_ = np.insert(X, 0, 1, axis=1)
+                params = np.linalg.lstsq(X_, y, rcond=1e-15)[0]
 
-            positions = np.insert(inputs - self.dim + 1, 0, 0)
-            self.params[x_t, positions] = params
-            self.free_params += params.size
-        self.params = np.array(self.params).T
+                positions = np.insert(inputs - self.dim + 1, 0, 0)
+                self.params[x_t, positions] = params
+                self.free_params += params.size
 
+        self.params = self.params.T
         y = data_matrix[:, :self.dim]
         X = data_matrix[:, self.dim: self.dim*(self.p+1)]
         X_ = np.insert(X, 0, 1, axis=1)

@@ -18,8 +18,6 @@ def pc_incremental(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
                    ic='bic', patiency=1, verbose=False, **kwargs):
     # precalculated information
     dim = ts.shape[1]
-    node_mapping, data_matrix = transform_ts(ts, max_p)
-    corr_matrix = np.corrcoef(data_matrix, rowvar=False)
 
     # verbose information
     graphs = {}
@@ -29,6 +27,8 @@ def pc_incremental(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
     # initial graph
     present_nodes = range(dim)
     if start > 0:
+        node_mapping, data_matrix = transform_ts(ts, start)
+        corr_matrix = np.corrcoef(data_matrix, rowvar=False)
         start_time = time()
         G = pc_chen_modified(indep_test, ts, start, alpha)
         times[start] = time() - start_time
@@ -47,6 +47,8 @@ def pc_incremental(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
     # iteration step
     for p in range(start+steps, max_p+1, steps):
         start_time = time()
+        node_mapping, data_matrix = transform_ts(ts, p)
+        corr_matrix = np.corrcoef(data_matrix, rowvar=False)
         new_nodes = range(p*dim, min(p+steps, max_p)*dim)
 
         # step 1
