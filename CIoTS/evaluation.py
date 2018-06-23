@@ -5,6 +5,7 @@ from sklearn.metrics import accuracy_score, \
                             f1_score, \
                             precision_score, \
                             recall_score
+from copy import deepcopy
 
 
 def _equalize_nodeset(true_graph, pred_graph):
@@ -28,8 +29,9 @@ def _fpr(truth, prediction):
     return fp.sum()/(~truth).sum()
 
 
-def evaluate_edges(true_graph, pred_graph, directed=True):
-    true_graph, pred_graph = _equalize_nodeset(true_graph, pred_graph)
+def evaluate_edges(true_g, pred_g, directed=True):
+    true_graph, pred_graph = _equalize_nodeset(deepcopy(true_g),
+                                               deepcopy(pred_g))
     truth = []
     prediction = []
     if not directed:
