@@ -102,7 +102,7 @@ class VAR():
         sse = np.dot(residuals.T, residuals)
         sigma_u = sse / len(test_data)
         _, ll = np.linalg.slogdet(sigma_u)
-        bic = self._bic(ll, self.params.size, len(test_data))
+        bic = self._bic(ll, self.free_params, len(test_data))
 
         return mse, bic
 
