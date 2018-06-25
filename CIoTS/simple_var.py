@@ -2,6 +2,8 @@ from itertools import product
 
 import networkx as nx
 import numpy as np
+import pandas as pd
+from sklearn.metrics import mean_squared_error
 
 from .tools import transform_ts
 from .generator import node_name
@@ -85,6 +87,24 @@ class VAR():
                 if np.abs(A[i][j]) > threshold:
                     estimated_graph.add_edge(start_nodes[i], end_nodes[j], weight=A[i][j])
         return estimated_graph
+
+    def evaluate_test_set(self, start_values, test_data):
+        dim = test_data.shape[1]
+        variables = pd.concat([start_values, test_data])
+        _, data_matrix = transform_ts(variables, self.p)
+        y = data_matrix[:, :dim]
+        X_ = np.insert(data_matrix[:, dim:], 0, 1, axis=1)
+
+        predictions = np.dot(X_, self.params)
+        mse = mean_squared_error(y, predictions)
+
+        residuals = y - predictions
+        sse = np.dot(residuals.T, residuals)
+        sigma_u = sse / len(test_data)
+        _, ll = np.linalg.slogdet(sigma_u)
+        bic = self._bic(ll, self.free_params, len(test_data))
+
+        return mse, bic
 
     def information_criterion(self, ic, offset=0, free_params=None):
         if not self.is_fitted:
