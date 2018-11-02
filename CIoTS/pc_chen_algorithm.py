@@ -66,8 +66,8 @@ def _estimate_skeleton(g, indep_test_func, data_matrix, alpha, **kwargs):
                 if len(adj_i) < subset_size:
                     continue
                 for k in combinations(adj_i, subset_size):
-                    p_val = indep_test_func(data_matrix, i, j, set(k),
-                                            **kwargs)
+                    p_val, statistic = indep_test_func(data_matrix, i, j, set(k),
+                                                       **kwargs)
                     if p_val > alpha:
                         if g.has_edge(i, j):
                             if method_stable(kwargs):

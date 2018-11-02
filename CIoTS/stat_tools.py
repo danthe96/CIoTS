@@ -25,4 +25,4 @@ def partial_corr_test(data_matrix, i, j, S, **kwargs):
     # fisher transform
     z = sqrt(n - 3) * (1 / 2) * log((1 + r) / (1 - r))
     # p-test
-    return 2 * norm.sf(abs(z))
+    return 2 * norm.sf(abs(z)), abs(z)
