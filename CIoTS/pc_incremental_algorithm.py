@@ -145,10 +145,10 @@ def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
         for x_t in present_nodes:
             parents = list(set(G.predecessors(x_t)))
             # Goes up to full neighborhood, perhaps limit this
-            max_cond_dim = len(parents) - 1
+            max_cond_dim = float('inf')
             condition_size = 0
             # PC_1
-            while condition_size < max_cond_dim:
+            while condition_size < max_cond_dim and condition_size < len(parents) - 1:
                 parent_stats = defaultdict(lambda: float('inf'))
                 for x in parents:
                     other_parents = [e for e in parents if e != x]
