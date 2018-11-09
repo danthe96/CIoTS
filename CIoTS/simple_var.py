@@ -40,7 +40,7 @@ class VAR():
         self.free_params = 0
 
         if mapping is None:
-            mapping = {n: n for n in graph.nodes()}
+            mapping = {i: n for i, n in enumerate(graph.nodes())}
         inverted_mapping = {v: k for k, v in mapping.items()}
 
         for x_t in range(self.dim):
