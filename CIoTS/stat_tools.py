@@ -1,4 +1,5 @@
 from math import sqrt, log
+import sys
 
 import numpy as np
 from scipy.stats import norm
@@ -22,6 +23,11 @@ def partial_corr_test(data_matrix, i, j, S, **kwargs):
     S = list(S)
     n = data_matrix.shape[0]
     r = partial_corr(i, j, S, corr_matrix)
+    # clip r for numerical reasons
+    if r >= 1:
+        r = 1 - sys.float_info.epsilon
+    elif r <= -1:
+        r = sys.float_info.epsilon - 1
     # fisher transform
     z = sqrt(n - 3) * (1 / 2) * log((1 + r) / (1 - r))
     # p-test
