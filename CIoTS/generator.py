@@ -5,7 +5,6 @@ import networkx as nx
 import numpy as np
 import pandas as pd
 from statsmodels.tsa.vector_ar.var_model import is_stable
-from copy import copy
 from random import sample, seed
 from itertools import product
 
@@ -31,14 +30,14 @@ def draw_graph(graph, dimensions, max_p):
 class CausalTSGenerator:
 
     def __init__(self, dimensions, max_p, data_length=1000, incoming_edges=4,
-                 random_state=None, enforce_autocorrelation=False):
+                 random_state=None, autocorrelation=0):
         self.dimensions = dimensions
         self.max_p = max_p
         self.length = max_p + 1
         self.data_length = data_length
         self.incoming_edges = incoming_edges
         self.graph = None
-        self.enforce_autocorrelation = enforce_autocorrelation
+        self.autocorrelation = autocorrelation
 
         np.random.seed(random_state)
         seed(random_state)
@@ -71,7 +70,7 @@ class CausalTSGenerator:
     def _generate_graph(self):
         self.graph = nx.DiGraph()
         node_ids = list(product([ d for d in range(self.dimensions)],
-                                [l for l in range(self.max_p, -1, -1)]))
+                                [l for l in reversed(range(self.max_p+1))]))
         self.graph.add_nodes_from([node_name(*n) for n in node_ids])
 
         # Ensure max_p is utilized
@@ -86,12 +85,14 @@ class CausalTSGenerator:
             if d == d_t:
                 remaining_edges -= 1
                 candidates.remove((d_p, self.max_p))
-                self.graph.add_edge(node_name(d_p, self.max_p), node_name(d, 0))
+                self.graph.add_edge(node_name(d_p, self.max_p), node_name(d, 0),
+                                    weight=np.random.normal())
 
             # autocorrelation  
-            if self.enforce_autocorrelation:
+            if self.autocorrelation != 0:
                 candidates.remove((d, 1))
-                self.graph.add_edge(node_name(d, 1), node_name(d, 0))
+                self.graph.add_edge(node_name(d, 1), node_name(d, 0),
+                                    weight=self.autocorrelation)
 
             picks = sample(candidates, remaining_edges)
             for candidate in picks:
