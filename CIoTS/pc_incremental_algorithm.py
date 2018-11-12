@@ -51,7 +51,7 @@ def pc_incremental(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
         start_time = time()
         node_mapping, data_matrix = transform_ts(ts, p)
         corr_matrix = np.corrcoef(data_matrix, rowvar=False)
-        new_nodes = range(p*dim, min(p+steps, max_p)*dim)
+        new_nodes = list(range((p-steps+1)*dim, min(p+1, max_p+1)*dim))
 
         # step 1
         G.add_nodes_from(new_nodes)
@@ -129,7 +129,7 @@ def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
         start_time = time()
         node_mapping, data_matrix = transform_ts(ts, p)
         corr_matrix = np.corrcoef(data_matrix, rowvar=False)
-        new_nodes = range(p*dim, min(p+steps, max_p)*dim)
+        new_nodes = list(range((p-steps+1)*dim, min(p+1, max_p+1)*dim))
 
         # step 1: Add new nodes
         G.add_nodes_from(new_nodes)
@@ -184,7 +184,6 @@ def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
         return nx.relabel_nodes(graphs[best_p], node_mapping), graphs, times, bics
     else:
         return nx.relabel_nodes(graphs[best_p], node_mapping)
-    pass
 
 
 def pc_incremental_extensive(indep_test, ts, alpha=0.05, max_p=20, start=0,
@@ -222,7 +221,7 @@ def pc_incremental_extensive(indep_test, ts, alpha=0.05, max_p=20, start=0,
         start_time = time()
         node_mapping, data_matrix = transform_ts(ts, p)
         corr_matrix = np.corrcoef(data_matrix, rowvar=False)
-        new_nodes = range(p*dim, min(p+steps, max_p)*dim)
+        new_nodes = list(range((p-steps+1)*dim, min(p+1, max_p+1)*dim))
 
         # step 1
         G.add_nodes_from(new_nodes)
@@ -305,7 +304,7 @@ def pc_incremental_subsets(indep_test, ts, alpha=0.05, max_p=20, start=0,
         start_time = time()
         node_mapping, data_matrix = transform_ts(ts, p)
         corr_matrix = np.corrcoef(data_matrix, rowvar=False)
-        new_nodes = range(p*dim, min(p+steps, max_p)*dim)
+        new_nodes = list(range((p-steps+1)*dim, min(p+1, max_p+1)*dim))
 
         # step 1
         G.add_nodes_from(new_nodes)
