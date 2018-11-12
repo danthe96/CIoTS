@@ -69,7 +69,7 @@ class CausalTSGenerator:
 
     def _generate_graph(self):
         self.graph = nx.DiGraph()
-        node_ids = list(product([ d for d in range(self.dimensions)],
+        node_ids = list(product([d for d in range(self.dimensions)],
                                 [l for l in reversed(range(self.max_p+1))]))
         self.graph.add_nodes_from([node_name(*n) for n in node_ids])
 
@@ -88,7 +88,7 @@ class CausalTSGenerator:
                 self.graph.add_edge(node_name(d_p, self.max_p), node_name(d, 0),
                                     weight=np.random.normal())
 
-            # autocorrelation  
+            # autocorrelation
             if self.autocorrelation != 0:
                 candidates.remove((d, 1))
                 self.graph.add_edge(node_name(d, 1), node_name(d, 0),
