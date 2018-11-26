@@ -66,6 +66,7 @@ def _graph_confusion_matrix(true_graph, pred_graph, node_pairs=None):
     return {'tp': c_matrix[1, 1], 'tn': c_matrix[0, 0],
             'fp': c_matrix[0, 1], 'fn': c_matrix[1, 0]}
 
+
 def evaluate_edge_deletion(true_g, iterations, dim):
     confusion = []
     confusion_delta = []
