@@ -25,6 +25,7 @@ def pc_incremental(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
     graphs = {}
     times = {}
     bics = {}
+    sepsets = {}
 
     # initial graph
     present_nodes = range(dim)
@@ -72,6 +73,7 @@ def pc_incremental(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
                                                 corr_matrix=corr_matrix)
                 if p_value > alpha:
                     G.remove_edge(x, x_t)
+                    sepsets[(x, x_t)] = cond
 
         # verbose information
         graphs[p] = nx.relabel_nodes(G.copy(), node_mapping)
@@ -89,7 +91,7 @@ def pc_incremental(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
                 break
 
     if verbose:
-        return nx.relabel_nodes(graphs[best_p], node_mapping), graphs, times, bics
+        return nx.relabel_nodes(graphs[best_p], node_mapping), graphs, times, bics, sepsets
     else:
         return nx.relabel_nodes(graphs[best_p], node_mapping)
 
@@ -103,6 +105,7 @@ def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
     graphs = {}
     times = {}
     bics = {}
+    sepsets = {}
 
     # initial graph
     present_nodes = range(dim)
@@ -160,6 +163,7 @@ def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
 
                     if p_value > alpha:
                         G.remove_edge(x, x_t)
+                        sepsets[(x, x_t)] = condition
                         del parent_stats[x]
 
                 parents = [k for k, v in sorted(parent_stats.items(), key=lambda v:v[1], reverse=True)]
@@ -181,7 +185,7 @@ def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
                 break
 
     if verbose:
-        return nx.relabel_nodes(graphs[best_p], node_mapping), graphs, times, bics
+        return nx.relabel_nodes(graphs[best_p], node_mapping), graphs, times, bics, sepsets
     else:
         return nx.relabel_nodes(graphs[best_p], node_mapping)
 
@@ -195,6 +199,7 @@ def pc_incremental_extensive(indep_test, ts, alpha=0.05, max_p=20, start=0,
     graphs = {}
     times = {}
     bics = {}
+    sepsets = {}
 
     # initial graph
     present_nodes = range(dim)
@@ -245,6 +250,7 @@ def pc_incremental_extensive(indep_test, ts, alpha=0.05, max_p=20, start=0,
                                                     corr_matrix=corr_matrix)
                     if p_value > alpha:
                         G.remove_edge(x, x_t)
+                        sepsets[(x, x_t)] = cond
             num_edges = new_num_edges
             new_num_edges = len(G.edges())
 
@@ -264,7 +270,7 @@ def pc_incremental_extensive(indep_test, ts, alpha=0.05, max_p=20, start=0,
                 break
 
     if verbose:
-        return nx.relabel_nodes(graphs[best_p], node_mapping), graphs, times, bics
+        return nx.relabel_nodes(graphs[best_p], node_mapping), graphs, times, bics, sepsets
     else:
         return nx.relabel_nodes(graphs[best_p], node_mapping)
 
@@ -278,6 +284,7 @@ def pc_incremental_subsets(indep_test, ts, alpha=0.05, max_p=20, start=0,
     graphs = {}
     times = {}
     bics = {}
+    sepsets = {}
 
     # initial graph
     present_nodes = range(dim)
@@ -329,6 +336,7 @@ def pc_incremental_subsets(indep_test, ts, alpha=0.05, max_p=20, start=0,
                                                         corr_matrix=corr_matrix)
                         if p_value > alpha:
                             G.remove_edge(x, x_t)
+                            sepsets[(x, x_t)] = cond
                             break
 
         # verbose information
@@ -347,6 +355,6 @@ def pc_incremental_subsets(indep_test, ts, alpha=0.05, max_p=20, start=0,
                 break
 
     if verbose:
-        return nx.relabel_nodes(graphs[best_p], node_mapping), graphs, times, bics
+        return nx.relabel_nodes(graphs[best_p], node_mapping), graphs, times, bics, sepsets
     else:
         return nx.relabel_nodes(graphs[best_p], node_mapping)
