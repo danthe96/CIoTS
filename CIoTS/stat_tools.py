@@ -2,8 +2,11 @@ from math import sqrt, log
 import sys
 
 import numpy as np
+import pandas as pd
 from scipy.stats import norm
 from scipy.linalg import pinv
+from scipy.signal import correlate
+from itertools import combinations_with_replacement
 
 
 def partial_corr(i, j, S, corr_matrix):
@@ -32,3 +35,22 @@ def partial_corr_test(data_matrix, i, j, S, **kwargs):
     z = sqrt(n - len(S) - 3) * (1 / 2) * log(1 + 2 * r / (1 - r))
     # p-test
     return 2 * norm.sf(abs(z)), abs(z)
+
+
+def cross_correlation(ts, include_autocorr=True, return_df=False):
+    dims = [(col1, col2) for col1, col2 in combinations_with_replacement(ts.columns, 2)
+            if include_autocorr or col1 != col2]
+    dims_str = []
+    corrs = []
+    for col1, col2 in dims:
+        corr = correlate(ts[col1], ts[col2])
+        corr /= corr[len(ts)-1]
+        corrs.append(corr[len(ts)-1::-1])
+        dims_str.append(f'{col1} vs {col2}')
+        if col1 != col2:
+            corrs.append(corr[len(ts)-1::])
+            dims_str.append(f'{col2} vs {col1}')
+    if return_df:
+        return pd.DataFrame(np.array(corrs).T, columns=dims_str)
+    else:
+        return np.array(corrs)
