@@ -1,4 +1,4 @@
-from .generator import CausalTSGenerator, draw_graph
+from .generator import CausalTSGenerator, draw_graph, node_id, node_name
 from .pc_chen_algorithm import pc_chen, pc_chen_modified
 from .pc_incremental_algorithm import pc_incremental, \
                                       pc_incremental_extensive, \
@@ -14,6 +14,8 @@ from .simple_var import VAR
 __all__ = [
     'CausalTSGenerator',
     'draw_graph',
+    'node_id',
+    'node_name',
     'pc_chen',
     'pc_chen_modified',
     'pc_incremental',
