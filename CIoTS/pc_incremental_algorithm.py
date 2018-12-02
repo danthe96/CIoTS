@@ -96,8 +96,8 @@ def pc_incremental(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
         return nx.relabel_nodes(graphs[best_p], node_mapping)
 
 
-def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
-                       ic='bic', patiency=1, verbose=False, **kwargs):
+def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1, ic='bic',
+                       patiency=1, verbose=False, max_cond=float('inf'), **kwargs):
     # precalculated information
     dim = ts.shape[1]
 
@@ -148,10 +148,10 @@ def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
         for x_t in present_nodes:
             parents = list(set(G.predecessors(x_t)))
             # Goes up to full neighborhood, perhaps limit this
-            max_cond_dim = float('inf')
+            max_cond_size = float('inf') if no_imp > 0 else max_cond
             condition_size = 0
             # PC_1
-            while condition_size < max_cond_dim and condition_size < len(parents) - 1:
+            while condition_size < max_cond_size and condition_size < len(parents) - 1:
                 parent_stats = defaultdict(lambda: float('inf'))
                 for x in parents:
                     other_parents = [e for e in parents if e != x]
