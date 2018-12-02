@@ -30,7 +30,7 @@ def var_order_select(ts, max_p=20, ics=["aic", "bic", "hqic"], drop=True):
 
 def cross_corr_peaks(ts, include_autocorr=True, n_peaks=1):
     corr_matrix = cross_correlation(ts, include_autocorr=True)
-    peak_matrix = np.fabs(corr_matrix).argsort(axis=1)[::,::-1]
+    peak_matrix = np.fabs(corr_matrix).argsort(axis=1)[::, ::-1]
     peaks = peak_matrix[::, 0]
     # get next maximum (higher lag with max cross corr)
     for c in range(len(peaks)):
@@ -38,7 +38,7 @@ def cross_corr_peaks(ts, include_autocorr=True, n_peaks=1):
         current_index = 1
         while current_peak < n_peaks and current_index < len(ts):
             if peak_matrix[c, current_index] > peaks[c]:
-                current_peak +=1
+                current_peak += 1
                 peaks[c] = peak_matrix[c, current_index]
-            current_index +=1
+            current_index += 1
     return peaks.max()
