@@ -127,6 +127,7 @@ def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1, i
 
     no_imp = 0
 
+    condition_sizes = []
     # iteration step
     for p in range(start+steps, max_p+1, steps):
         start_time = time()
@@ -145,10 +146,11 @@ def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1, i
                 G.add_edge(x, x_t)
 
         # step 3: Check all connected nodes
+        cur_condition_sizes = []
         for x_t in present_nodes:
             parents = list(set(G.predecessors(x_t)))
             # Goes up to full neighborhood, perhaps limit this
-            max_cond_size = float('inf') if no_imp > 0 else max_cond
+            max_cond_size = float('inf') if no_imp >= patiency - 1 else max_cond
             condition_size = 0
             # PC_1
             while condition_size < max_cond_size and condition_size < len(parents) - 1:
@@ -168,6 +170,8 @@ def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1, i
 
                 parents = [k for k, v in sorted(parent_stats.items(), key=lambda v:v[1], reverse=True)]
                 condition_size += 1
+            cur_condition_sizes.append(condition_size)
+        condition_sizes.append(cur_condition_sizes)
 
         # verbose information
         graphs[p] = nx.relabel_nodes(G.copy(), node_mapping)
@@ -185,7 +189,7 @@ def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1, i
                 break
 
     if verbose:
-        return nx.relabel_nodes(graphs[best_p], node_mapping), graphs, times, bics, sepsets
+        return nx.relabel_nodes(graphs[best_p], node_mapping), graphs, times, bics, sepsets, condition_sizes
     else:
         return nx.relabel_nodes(graphs[best_p], node_mapping)
 
