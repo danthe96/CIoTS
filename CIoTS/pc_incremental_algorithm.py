@@ -150,7 +150,7 @@ def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1, i
         for x_t in present_nodes:
             parents = list(set(G.predecessors(x_t)))
             # Goes up to full neighborhood, perhaps limit this
-            max_cond_size = float('inf') if no_imp >= patiency - 1 else max_cond
+            max_cond_size = float('inf') if no_imp >= patiency - 1 or p == max_p else max_cond
             condition_size = 0
             # PC_1
             while condition_size < max_cond_size and condition_size < len(parents) - 1:
