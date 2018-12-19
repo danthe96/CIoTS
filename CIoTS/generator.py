@@ -36,8 +36,10 @@ class CausalTSGenerator:
         self.length = max_p + 1
         self.data_length = data_length
         self.incoming_edges = incoming_edges
-        self.graph = None
         self.autocorrelation = autocorrelation
+
+        self.graph = None
+        self.ts = None
 
         np.random.seed(random_state)
         seed(random_state)
@@ -58,7 +60,8 @@ class CausalTSGenerator:
             X = np.append(X, np.expand_dims(X_t, axis=1), axis=1)
 
         X = X[:, self.max_p:]
-        return pd.DataFrame(X.T, columns=[f'X{i}' for i in range(self.dimensions)])
+        self.ts = pd.DataFrame(X.T, columns=[f'X{i}' for i in range(self.dimensions)])
+        return self.ts
 
     def generate_stable_graph(self):
         stable_var = False
