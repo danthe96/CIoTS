@@ -24,7 +24,12 @@ def draw_graph(graph, dimensions, max_p):
     for node in graph.nodes():
         i, j = node_id(node)
         positions[node] = (max_p-j, dimensions-i)
-    nx.draw(graph, pos=positions, with_labels=True, font_size=10, node_size=1000)
+    nx.draw(graph, positions, with_labels=True, font_size=10, node_size=1000)
+    rounded_labels = dict([(k, round(v, 2)) for k, v in nx.get_edge_attributes(graph, 'weight').items()])
+    nx.draw_networkx_edge_labels(
+        graph, positions, edge_labels=rounded_labels,
+        font_size=10, node_size=1000, label_pos=0.75
+    )
     plt.show()
 
 
@@ -98,7 +103,7 @@ class CausalTSGenerator:
             if self.autocorrelation != 0:
                 candidates.remove((d, 1))
                 self.graph.add_edge(node_name(d, 1), node_name(d, 0),
-                                    weight=self.autocorrelation)
+                                    weight=np.random.choice([-1, 1]) * self.autocorrelation)
 
             picks = sample(candidates, remaining_edges)
             for candidate in picks:
