@@ -1,3 +1,4 @@
+import random
 import re
 
 import matplotlib.pyplot as plt
@@ -88,8 +89,10 @@ class CausalTSGenerator:
             if d == d_t:
                 remaining_edges -= 1
                 candidates.remove((d_p, self.max_p))
+                weight = np.random.multivariate_normal(
+                    mean=[-0.75, 0.75], cov=0.1*np.ones((2, 2)))[random.randint(0, 1)]
                 self.graph.add_edge(node_name(d_p, self.max_p), node_name(d, 0),
-                                    weight=np.random.normal())
+                                    weight=weight)
 
             # autocorrelation
             if self.autocorrelation != 0:
@@ -99,7 +102,9 @@ class CausalTSGenerator:
 
             picks = sample(candidates, remaining_edges)
             for candidate in picks:
-                self.graph.add_edge(node_name(*candidate), node_name(d, 0), weight=np.random.normal())
+                weight = np.random.multivariate_normal(
+                    mean=[-0.75, 0.75], cov=0.1*np.ones((2, 2)))[random.randint(0, 1)]
+                self.graph.add_edge(node_name(*candidate), node_name(d, 0), weight=weight)
 
         adjacency = np.array(nx.adjacency_matrix(self.graph).todense())
         VAR_exog = []
