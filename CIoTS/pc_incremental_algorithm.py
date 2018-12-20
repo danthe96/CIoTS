@@ -9,6 +9,7 @@ from CIoTS.simple_var import VAR
 from itertools import product, combinations
 from time import time
 
+
 class Stopper(ABC):
 
     @abstractmethod
@@ -54,7 +55,6 @@ class ICStopper():
             if self.no_imp >= self.patiency:
                 return True
         return False
-
 
     def _graph_ic(self, graph, p, data_matrix):
         free_params = len(graph.edges()) + len(graph.nodes())
