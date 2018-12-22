@@ -1,70 +1,16 @@
-from abc import ABC, abstractmethod
 from collections import defaultdict
 
 import networkx as nx
 import numpy as np
 from CIoTS.pc_chen_algorithm import pc_chen_modified
+from CIoTS.stoppers import ICStopper
 from CIoTS.tools import transform_ts
-from CIoTS.simple_var import VAR
 from itertools import product, combinations
 from time import time
 
 
-class Stopper(ABC):
-
-    @abstractmethod
-    def scores(self):
-        pass
-
-    @abstractmethod
-    def best_p(self):
-        pass
-
-    @abstractmethod
-    def check_stop(self):
-        pass
-
-
-class ICStopper():
-
-    def __init__(self, dim, patiency=1, ic='bic'):
-        self.dim = dim
-        self.ic = ic
-        self.patiency = patiency
-
-        self.bics = {}
-        self.no_imp = 0
-        self.best_p = 0
-        self.best_bic = np.inf
-
-    def scores(self):
-        return self.bics
-
-    def best_p(self):
-        return self.best_p
-
-    def check_stop(self, graph, p, data_matrix):
-        self.bics[p] = self._graph_ic(graph, p, data_matrix)
-
-        if self.bics[p] < self.best_bic:
-            self.best_bic = self.bics[p]
-            self.best_p = p
-            self.no_imp = 0
-        else:
-            self.no_imp += 1
-            if self.no_imp >= self.patiency:
-                return True
-        return False
-
-    def _graph_ic(self, graph, p, data_matrix):
-        free_params = len(graph.edges()) + len(graph.nodes())
-        model = VAR(p)
-        model.fit_from_graph(self.dim, data_matrix, graph)
-        return model.information_criterion(self.ic, free_params=free_params)
-
-
-def _base_incremental(indep_test, ts, step3, alpha=0.05, max_p=20, start=0, steps=1,
-                      ic='bic', patiency=1, verbose=False, **kwargs):
+def _base_incremental(indep_test, ts, step3, alpha=0.05, max_tau=20, start=0,
+                      steps=1, use_stopper=True, stopper=None, verbose=False, **kwargs):
     # precalculated information
     dim = ts.shape[1]
 
@@ -73,7 +19,10 @@ def _base_incremental(indep_test, ts, step3, alpha=0.05, max_p=20, start=0, step
     times = {}
     sepsets = {}
 
-    stopper = ICStopper(dim, patiency, ic)
+    if stopper is None:
+        ic = 'bic'
+        patiency = 2
+        stopper = ICStopper(dim, patiency, ic)
 
     # initial graph
     present_nodes = range(dim)
@@ -90,12 +39,15 @@ def _base_incremental(indep_test, ts, step3, alpha=0.05, max_p=20, start=0, step
         G = nx.DiGraph()
         G.add_nodes_from(present_nodes)
 
+    # if not use_stopper:
+        # print(f'Stopper deactivated. Running until {list(range(start+steps, max_p+1, steps))[-1:]}')
+
     # iteration step
-    for p in range(start+steps, max_p+1, steps):
+    for tau in range(start+steps, max_tau+1, steps):
         start_time = time()
-        node_mapping, data_matrix = transform_ts(ts, p)
+        node_mapping, data_matrix = transform_ts(ts, tau)
         corr_matrix = np.corrcoef(data_matrix, rowvar=False)
-        new_nodes = list(range((p-steps+1)*dim, min(p+1, max_p+1)*dim))
+        new_nodes = list(range((tau-steps+1)*dim, min(tau+1, max_tau+1)*dim))
 
         # step 1
         G.add_nodes_from(new_nodes)
@@ -111,21 +63,25 @@ def _base_incremental(indep_test, ts, step3, alpha=0.05, max_p=20, start=0, step
         step3(G, present_nodes, data_matrix, corr_matrix)
 
         # verbose information
-        graphs[p] = nx.relabel_nodes(G.copy(), node_mapping)
-        times[p] = time() - start_time
+        graphs[tau] = nx.relabel_nodes(G.copy(), node_mapping)
+        if verbose:
+            times[tau] = time() - start_time
 
         # early stopping
-        if stopper.check_stop(G, p, data_matrix):
+        # Even if stopper disabled, we keep running it to have scores for verbose output
+        should_stop = stopper.check_stop(G, tau, data_matrix)
+        if use_stopper and should_stop:
             break
 
     if verbose:
-        return nx.relabel_nodes(graphs[stopper.best_p], node_mapping), graphs, times, stopper.scores(), sepsets
+        return (nx.relabel_nodes(graphs[stopper.best_tau if use_stopper else tau], node_mapping),
+                graphs, times, stopper, sepsets)
     else:
-        return nx.relabel_nodes(graphs[stopper.best_p], node_mapping)
+        return nx.relabel_nodes(graphs[stopper.best_tau if use_stopper else tau], node_mapping)
 
 
 def pc_incremental(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
-                   ic='bic', patiency=1, verbose=False, **kwargs):
+                   use_stopper=True, stopper=None, verbose=False, **kwargs):
     def step3(G, present_nodes, data_matrix, corr_matrix):
         for x_t in present_nodes:
             in_set = set(G.predecessors(x_t))
@@ -139,12 +95,12 @@ def pc_incremental(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
                         # sepsets[(node_mapping[x], node_mapping[x_t])] = [node_mapping[n] for n in cond]
                         pass
 
-    return _base_incremental(indep_test, ts, step3, alpha, max_p,
-                             start, steps, ic, patiency, verbose, **kwargs)
+    return _base_incremental(indep_test, ts, step3, alpha=alpha, max_tau=max_p, start=start, steps=steps,
+                             use_stopper=use_stopper, stopper=stopper, verbose=verbose, **kwargs)
 
 
-def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1, ic='bic',
-                       patiency=1, verbose=False, max_cond=float('inf'), **kwargs):
+def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
+                       use_stopper=True, stopper=None, verbose=False, max_cond=float('inf'), **kwargs):
     def step3(G, present_nodes, data_matrix, corr_matrix):
         for x_t in present_nodes:
             parents = list(set(G.predecessors(x_t)))
@@ -172,12 +128,12 @@ def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1, i
                 parents = [k for k, v in sorted(parent_stats.items(), key=lambda v:v[1], reverse=True)]
                 condition_size += 1
 
-    return _base_incremental(indep_test, ts, step3, alpha, max_p,
-                             start, steps, ic, patiency, verbose, **kwargs)
+    return _base_incremental(indep_test, ts, step3, alpha=alpha, max_tau=max_p, start=start, steps=steps,
+                             use_stopper=use_stopper, stopper=stopper, verbose=verbose, **kwargs)
 
 
-def pc_incremental_extensive(indep_test, ts, alpha=0.05, max_p=20, start=0,
-                             steps=1, ic='bic', patiency=1, verbose=False, **kwargs):
+def pc_incremental_extensive(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
+                             use_stopper=True, stopper=None, verbose=False, **kwargs):
     def step3(G, present_nodes, data_matrix, corr_matrix):
         num_edges = np.inf
         new_num_edges = len(G.edges())
@@ -196,12 +152,12 @@ def pc_incremental_extensive(indep_test, ts, alpha=0.05, max_p=20, start=0,
             num_edges = new_num_edges
             new_num_edges = len(G.edges())
 
-    return _base_incremental(indep_test, ts, step3, alpha, max_p,
-                             start, steps, ic, patiency, verbose, **kwargs)
+    return _base_incremental(indep_test, ts, step3, alpha=alpha, max_tau=max_p, start=start, steps=steps,
+                             use_stopper=use_stopper, stopper=stopper, verbose=verbose, **kwargs)
 
 
-def pc_incremental_subsets(indep_test, ts, alpha=0.05, max_p=20, start=0,
-                           steps=1, ic='bic', patiency=1, verbose=False, **kwargs):
+def pc_incremental_subsets(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
+                           use_stopper=True, stopper=None, verbose=False, **kwargs):
     def step3(G, present_nodes, data_matrix, corr_matrix):
         for subset_size in range(1, len(G.nodes())):
             for x_t in present_nodes:
@@ -220,5 +176,5 @@ def pc_incremental_subsets(indep_test, ts, alpha=0.05, max_p=20, start=0,
                                 pass
                             break
 
-    return _base_incremental(indep_test, ts, step3, alpha, max_p,
-                             start, steps, ic, patiency, verbose, **kwargs)
+    return _base_incremental(indep_test, ts, step3, alpha=alpha, max_tau=max_p, start=start, steps=steps,
+                             use_stopper=use_stopper, stopper=stopper, verbose=verbose, **kwargs)
