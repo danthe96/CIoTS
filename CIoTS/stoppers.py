@@ -53,3 +53,31 @@ class ICStopper():
         model = VAR(tau)
         model.fit_from_graph(self.dim, data_matrix, graph)
         return model.information_criterion(self.ic, free_params=free_params)
+
+
+class CorrStopper():
+
+    def __init__(self, dim, patiency=1):
+        super().__init__()
+        self.dim = dim
+        self.patiency = patiency
+
+        self.corr_tests = {}
+        self.no_imp = 0
+
+    def scores(self):
+        return self.corr_tests
+
+    def check_stop(self, graph, tau, data_matrix):
+        # if corr_test is not set, returns 0/1 adj matrix
+        # can be used for more complex decisions
+        adj_matrix = nx.to_numpy_matrix(graph, weight='corr_test')
+        self.corr_tests[tau] = np.sum(adj_matrix[:-(self.dim+1):-1, :self.dim])
+
+        if self.corr_tests[tau] > 0:
+            self.no_imp = 0
+        else:
+            self.no_imp += 1
+            if self.no_imp >= self.patiency:
+                return True
+        return False
