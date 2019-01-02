@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-
+import networkx as nx
 import numpy as np
 
 
@@ -57,13 +57,14 @@ class ICStopper():
 
 class CorrStopper():
 
-    def __init__(self, dim, patiency=1):
+    def __init__(self, dim, patiency=1, max_tau=10):
         super().__init__()
         self.dim = dim
         self.patiency = patiency
 
         self.corr_tests = {}
         self.no_imp = 0
+        self.best_tau = max_tau
 
     def scores(self):
         return self.corr_tests
@@ -79,5 +80,6 @@ class CorrStopper():
         else:
             self.no_imp += 1
             if self.no_imp >= self.patiency:
+                self.best_tau = tau
                 return True
         return False
