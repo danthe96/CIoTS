@@ -158,3 +158,4 @@ vignettes/*.pdf
 
 
 # End of https://www.gitignore.io/api/r,data,python,jupyternotebook
+notebooks/ICML/icml_data
