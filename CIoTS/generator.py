@@ -36,7 +36,7 @@ def draw_graph(graph, dimensions, max_p):
 class CausalTSGenerator:
 
     def __init__(self, dimensions, max_p, data_length=1000, incoming_edges=4,
-                 random_state=None, autocorrelation=0):
+                 random_state=None, autocorrelation=False):
         self.dimensions = dimensions
         self.max_p = max_p
         self.length = max_p + 1
@@ -100,10 +100,12 @@ class CausalTSGenerator:
                                     weight=weight)
 
             # autocorrelation
-            if self.autocorrelation != 0:
+            if self.autocorrelation:
                 candidates.remove((d, 1))
+                weight = np.random.multivariate_normal(
+                    mean=[-0.75, 0.75], cov=0.1*np.ones((2, 2)))[random.randint(0, 1)]
                 self.graph.add_edge(node_name(d, 1), node_name(d, 0),
-                                    weight=np.random.choice([-1, 1]) * self.autocorrelation)
+                                    weight=weight)
 
             picks = sample(candidates, remaining_edges)
             for candidate in picks:
