@@ -19,6 +19,11 @@ class Stopper(ABC):
     def check_stop(self):
         pass
 
+    @classmethod
+    @abstractmethod
+    def simulate(cls):
+        pass
+
 
 class ICStopper():
 
@@ -54,6 +59,22 @@ class ICStopper():
         model.fit_from_graph(self.dim, data_matrix, graph)
         return model.information_criterion(self.ic, free_params=free_params)
 
+    @classmethod
+    def simulate(cls, scores, patiency):
+        best_score = np.inf
+        best_idx = 0
+        no_imp = 0
+        for idx, score in enumerate(scores):
+            if score < best_score:
+                no_imp = 0
+                best_score = score
+                best_idx = idx
+            else:
+                no_imp += 1
+                if no_imp >= patiency:
+                    break
+        return best_idx
+
 
 class CorrStopper():
 
@@ -77,9 +98,23 @@ class CorrStopper():
 
         if self.corr_tests[tau] > 0:
             self.no_imp = 0
+            self.best_tau = tau
         else:
             self.no_imp += 1
             if self.no_imp >= self.patiency:
-                self.best_tau = tau
                 return True
         return False
+
+    @classmethod
+    def simulate(cls, corr_test, patiency):
+        no_imp = 0
+        result_idx = 0
+        for idx, test in enumerate(corr_test):
+            if test > 0:
+                no_imp = 0
+                result_idx = idx
+            else:
+                no_imp += 1
+                if no_imp >= patiency:
+                    break
+        return result_idx
