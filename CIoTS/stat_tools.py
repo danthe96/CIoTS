@@ -1,12 +1,12 @@
-from math import sqrt, log
 import sys
+from itertools import combinations_with_replacement
+from math import sqrt, log
 
 import numpy as np
 import pandas as pd
 from scipy.stats import norm
 from scipy.linalg import pinv
 from scipy.signal import correlate
-from itertools import combinations_with_replacement
 
 
 def partial_corr(i, j, S, corr_matrix):
@@ -35,6 +35,18 @@ def partial_corr_test(data_matrix, i, j, S, **kwargs):
     z = sqrt(n - len(S) - 3) * (1 / 2) * log(1 + 2 * r / (1 - r))
     # p-test
     return 2 * norm.sf(abs(z)), abs(z)
+
+
+def tigramite_partial_corr_test(data_matrix, i, j, S, **kwargs):
+    from tigramite.independence_tests import ParCorr
+    import IPython; IPython.embed()
+    array = data_matrix[[i, j] + list(S)]
+    dim, T = array.shape
+
+    tigramite_par_corr = ParCorr()
+    val = tigramite_par_corr.get_dependence_measure(array, None)
+    pval = tigramite_par_corr.get_analytic_significance(value=val, T=T, dim=dim)
+    return pval, val
 
 
 def cross_correlation(ts, include_autocorr=True, return_df=False):
