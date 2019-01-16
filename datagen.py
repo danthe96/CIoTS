@@ -1,8 +1,7 @@
-import os
 import pickle
 from time import time
 import sys
-from CIoTS import *
+from CIoTS import CausalTSGenerator
 
 data_path = 'notebooks/ICML/icml_data_no_autocorr/'
 
