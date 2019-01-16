@@ -1,4 +1,3 @@
-import random
 import re
 
 import matplotlib.pyplot as plt
@@ -71,9 +70,14 @@ class CausalTSGenerator:
 
     def generate_stable_graph(self):
         stable_var = False
+        i = 0
         while not stable_var:
             VAR_exog = self._generate_graph()
             stable_var = is_stable(VAR_exog[::-1])
+            if not stable_var:
+                print(f'Graph not stable. Regenerating' + ('.' * (i % 3 + 1)) + '   ', end='\r')
+                i += 1
+        print()
         self.VAR_exog = VAR_exog
 
     def _generate_graph(self):
@@ -84,33 +88,36 @@ class CausalTSGenerator:
 
         # Ensure max_p is utilized
         d_t = np.random.choice(self.dimensions)
-        d_p = np.random.choice(self.dimensions)
+        d_p = np.random.choice([d for d in range(self.dimensions) if d != d_t])
 
         for d in range(self.dimensions):
             # Generate random edges to previous nodes
-            candidates = [n for n in node_ids if n[1] > 0]
+            candidates = [n for n in node_ids if n[1] > 0 and n[0] != d]
             remaining_edges = self.incoming_edges
 
             if d == d_t:
                 remaining_edges -= 1
                 candidates.remove((d_p, self.max_p))
-                weight = np.random.multivariate_normal(
-                    mean=[-0.75, 0.75], cov=0.1*np.ones((2, 2)))[random.randint(0, 1)]
+                weight = np.random.choice([-0.75, 0.75])
+                # np.random.multivariate_normal(
+                # mean=[-0.75, 0.75], cov=0.1*np.ones((2, 2)))[random.randint(0, 1)]
                 self.graph.add_edge(node_name(d_p, self.max_p), node_name(d, 0),
                                     weight=weight)
 
             # autocorrelation
             if self.autocorrelation:
-                candidates.remove((d, 1))
-                weight = np.random.multivariate_normal(
-                    mean=[-0.75, 0.75], cov=0.1*np.ones((2, 2)))[random.randint(0, 1)]
+                # candidates.remove((d, 1))
+                weight = np.random.choice([-0.75, 0.75])
+                # np.random.multivariate_normal(
+                # mean=[-0.75, 0.75], cov=0.1*np.ones((2, 2)))[random.randint(0, 1)]
                 self.graph.add_edge(node_name(d, 1), node_name(d, 0),
                                     weight=weight)
 
             picks = sample(candidates, remaining_edges)
             for candidate in picks:
-                weight = np.random.multivariate_normal(
-                    mean=[-0.75, 0.75], cov=0.1*np.ones((2, 2)))[random.randint(0, 1)]
+                weight = np.random.choice([-0.75, 0.75])
+                # np.random.multivariate_normal(
+                # mean=[-0.75, 0.75], cov=0.1*np.ones((2, 2)))[random.randint(0, 1)]
                 self.graph.add_edge(node_name(*candidate), node_name(d, 0), weight=weight)
 
         adjacency = np.array(nx.adjacency_matrix(self.graph).todense())

@@ -27,7 +27,7 @@ def _base_incremental(indep_test, ts, step3, alpha=0.05, max_tau=20, start=0,
     # initial graph
     present_nodes = range(dim)
     if start > 0:
-        node_mapping, data_matrix = transform_ts(ts, start)
+        node_mapping, data_matrix = transform_ts(ts, 2*start)
         corr_matrix = np.corrcoef(data_matrix, rowvar=False)
         start_time = time()
         G = pc_chen_modified(indep_test, ts, start, alpha)
@@ -45,7 +45,7 @@ def _base_incremental(indep_test, ts, step3, alpha=0.05, max_tau=20, start=0,
     # iteration step
     for tau in range(start+steps, max_tau+1, steps):
         start_time = time()
-        node_mapping, data_matrix = transform_ts(ts, tau)
+        node_mapping, data_matrix = transform_ts(ts, 2*tau)
         corr_matrix = np.corrcoef(data_matrix, rowvar=False)
         new_nodes = list(range((tau-steps+1)*dim, min(tau+1, max_tau+1)*dim))
 
@@ -99,39 +99,6 @@ def pc_incremental(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
                              use_stopper=use_stopper, stopper=stopper, verbose=verbose, **kwargs)
 
 
-def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
-                       use_stopper=True, stopper=None, verbose=False, max_cond=float('inf'), **kwargs):
-    def step3(G, present_nodes, data_matrix, corr_matrix):
-        for x_t in present_nodes:
-            parents = list(set(G.predecessors(x_t)))
-            # Goes up to full neighborhood, perhaps limit this
-            max_cond_size = max_cond
-            condition_size = 0
-            # PC_1
-            while condition_size < max_cond_size and condition_size < len(parents) - 1:
-                parent_stats = defaultdict(lambda: float('inf'))
-                for x in parents:
-                    other_parents = [e for e in parents if e != x]
-                    condition = other_parents[:condition_size]
-
-                    p_value, statistic = indep_test(data_matrix, x_t, x, condition,
-                                                    corr_matrix=corr_matrix)
-                    parent_stats[x] = min(parent_stats[x], np.abs(statistic))
-
-                    if p_value > alpha:
-                        G.remove_edge(x, x_t)
-                        if verbose:
-                            # sepsets[(node_mapping[x], node_mapping[x_t])] = [node_mapping[n] for n in condition]
-                            pass
-                        del parent_stats[x]
-
-                parents = [k for k, v in sorted(parent_stats.items(), key=lambda v:v[1], reverse=True)]
-                condition_size += 1
-
-    return _base_incremental(indep_test, ts, step3, alpha=alpha, max_tau=max_p, start=start, steps=steps,
-                             use_stopper=use_stopper, stopper=stopper, verbose=verbose, **kwargs)
-
-
 def pc_incremental_extensive(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
                              use_stopper=True, stopper=None, verbose=False, **kwargs):
     def step3(G, present_nodes, data_matrix, corr_matrix):
@@ -175,6 +142,73 @@ def pc_incremental_subsets(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=
                                 # sepsets[(node_mapping[x], node_mapping[x_t])] = [node_mapping[n] for n in cond]
                                 pass
                             break
+
+    return _base_incremental(indep_test, ts, step3, alpha=alpha, max_tau=max_p, start=start, steps=steps,
+                             use_stopper=use_stopper, stopper=stopper, verbose=verbose, **kwargs)
+
+
+def pc1_step3(G, present_nodes, data_matrix, corr_matrix,
+              indep_test, max_cond, alpha, verbose):
+    for x_t in present_nodes:
+        parents = list(set(G.predecessors(x_t)))
+        # Goes up to full neighborhood, perhaps limit this
+        max_cond_size = max_cond
+        condition_size = 0
+        # PC_1
+        while condition_size < max_cond_size and condition_size < len(parents) - 1:
+            parent_stats = defaultdict(lambda: float('inf'))
+            for x in parents:
+                other_parents = [e for e in parents if e != x]
+                condition = other_parents[:condition_size]
+
+                p_value, statistic = indep_test(data_matrix, x_t, x, condition,
+                                                corr_matrix=corr_matrix)
+                parent_stats[x] = min(parent_stats[x], np.abs(statistic))
+
+                if p_value > alpha:
+                    G.remove_edge(x, x_t)
+                    if verbose:
+                        # sepsets[(node_mapping[x], node_mapping[x_t])] = [node_mapping[n] for n in condition]
+                        pass
+                    del parent_stats[x]
+
+            parents = [k for k, v in sorted(parent_stats.items(), key=lambda v:v[1], reverse=True)]
+            condition_size += 1
+
+
+def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
+                       use_stopper=True, stopper=None, verbose=False, max_cond=float('inf'), **kwargs):
+    def step3(G, present_nodes, data_matrix, corr_matrix):
+        pc1_step3(G, present_nodes, data_matrix, corr_matrix,
+                  indep_test, max_cond, alpha, verbose)
+
+    return _base_incremental(indep_test, ts, step3, alpha=alpha, max_tau=max_p, start=start, steps=steps,
+                             use_stopper=use_stopper, stopper=stopper, verbose=verbose, **kwargs)
+
+
+def pc_incremental_pc1mci(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
+                          use_stopper=True, stopper=None, verbose=False, max_cond=float('inf'), **kwargs):
+    def step3(G, present_nodes, data_matrix, corr_matrix):
+        # PC1
+        pc1_step3(G, present_nodes, data_matrix, corr_matrix,
+                  indep_test, max_cond, alpha, verbose)
+        # MCI
+        dim = len(present_nodes)
+        for x_t in present_nodes:
+            conds_y = list(G.predecessors(x_t))
+            for cond_y in conds_y:
+                cond_y_dim, cond_y_tau = cond_y % dim, cond_y // dim
+                # import IPython; IPython.embed()
+                conds_x = [c + cond_y_tau * dim for c in list(G.predecessors(cond_y_dim))]
+                # if G.has_node(c + cond_y_tau * dim)]
+                other_conds_y = [e for e in conds_y if e != cond_y]
+
+                condition = set(other_conds_y + conds_x)
+
+                p_value, statistic = indep_test(data_matrix, x_t, cond_y, condition,
+                                                corr_matrix=corr_matrix)
+                if p_value > alpha:
+                    G.remove_edge(cond_y, x_t)
 
     return _base_incremental(indep_test, ts, step3, alpha=alpha, max_tau=max_p, start=start, steps=steps,
                              use_stopper=use_stopper, stopper=stopper, verbose=verbose, **kwargs)
