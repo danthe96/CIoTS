@@ -21,8 +21,7 @@ def partial_corr(i, j, S, corr_matrix):
 
 
 def partial_corr_test(data_matrix, i, j, S, **kwargs):
-    corr_matrix = kwargs.get('corr_matrix',
-                             np.corrcoef(data_matrix, rowvar=False))
+    corr_matrix = kwargs.get('corr_matrix', np.corrcoef(data_matrix, rowvar=False))
     S = list(S)
     n = data_matrix.shape[0]
     r = partial_corr(i, j, S, corr_matrix)
@@ -39,8 +38,7 @@ def partial_corr_test(data_matrix, i, j, S, **kwargs):
 
 def tigramite_partial_corr_test(data_matrix, i, j, S, **kwargs):
     from tigramite.independence_tests import ParCorr
-    import IPython; IPython.embed()
-    array = data_matrix[[i, j] + list(S)]
+    array = data_matrix.T[[i, j] + list(S)]
     dim, T = array.shape
 
     tigramite_par_corr = ParCorr()
