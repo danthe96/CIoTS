@@ -3,7 +3,7 @@ from time import time
 import sys
 from CIoTS import CausalTSGenerator
 
-data_path = 'notebooks/ICML/icml_data_no_autocorr/'
+data_path = 'notebooks/ICML/icml_data_v2/'
 
 dim, in_edges, tau, autocorr, data_length = eval(sys.argv[1])
 
