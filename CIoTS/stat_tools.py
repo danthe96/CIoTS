@@ -36,12 +36,12 @@ def partial_corr_test(data_matrix, i, j, S, **kwargs):
     return 2 * norm.sf(abs(z)), abs(z)
 
 
+from tigramite.independence_tests import ParCorr
+tigramite_par_corr = ParCorr()
 def tigramite_partial_corr_test(data_matrix, i, j, S, **kwargs):
-    from tigramite.independence_tests import ParCorr
     array = data_matrix.T[[i, j] + list(S)]
     dim, T = array.shape
 
-    tigramite_par_corr = ParCorr()
     val = tigramite_par_corr.get_dependence_measure(array, None)
     pval = tigramite_par_corr.get_analytic_significance(value=val, T=T, dim=dim)
     return pval, val
