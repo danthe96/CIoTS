@@ -85,7 +85,7 @@ class CorrStopper():
 
         self.corr_tests = {}
         self.no_imp = 0
-        self.best_tau = max_tau
+        self.best_tau = 1
 
     def scores(self):
         return self.corr_tests
