@@ -161,4 +161,4 @@ vignettes/*.pdf
 notebooks/ICML/icml_data*
 notebooks/ICML/icml_results*
 results/
-
+src/

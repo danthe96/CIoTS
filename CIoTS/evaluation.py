@@ -102,3 +102,18 @@ def evaluate_edge_deletion(true_g, iterations, dim):
         # update prev nodes for delta calculation
         prev_nodes = set(deepcopy(graph.nodes))
     return pd.DataFrame(confusion), pd.DataFrame(confusion_delta)
+
+
+def evaluate_parameters(true_params, est_params):
+    assert true_params.shape[1] == est_params.shape[1]
+    if true_params.shape[0] < est_params.shape[0]:
+        missing = est_params.shape[0] - true_params.shape[0]
+        true_params = np.append(true_params, 
+                                np.zeros((missing, true_params.shape[1])),
+                                axis=0)
+    elif true_params.shape[0] > est_params.shape[0]:
+        missing = true_params.shape[0] - est_params.shape[0]
+        est_params = np.append(est_params, 
+                               np.zeros((missing, est_params.shape[1])),
+                               axis=0)
+    return ((true_params - est_params)**2).sum()
