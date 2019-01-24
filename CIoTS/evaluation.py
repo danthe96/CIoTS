@@ -104,7 +104,7 @@ def evaluate_edge_deletion(true_g, iterations, dim):
     return pd.DataFrame(confusion), pd.DataFrame(confusion_delta)
 
 
-def evaluate_parameters(true_params, est_params):
+def evaluate_parameters(true_params, est_params, eval_type='mse_full'):
     assert true_params.shape[1] == est_params.shape[1]
     if true_params.shape[0] < est_params.shape[0]:
         missing = est_params.shape[0] - true_params.shape[0]
@@ -116,4 +116,9 @@ def evaluate_parameters(true_params, est_params):
         est_params = np.append(est_params, 
                                np.zeros((missing, est_params.shape[1])),
                                axis=0)
-    return ((true_params - est_params)**2).sum()
+
+    se = (true_params - est_params) ** 2
+    mse_full = se.mean()
+    mse_tr = se[true_params != 0].mean()
+    mse_fp = se[(true_params == 0) & (est_params != 0)].mean()
+    return mse_full, mse_tr, mse_fp
