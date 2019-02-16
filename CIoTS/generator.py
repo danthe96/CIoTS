@@ -18,11 +18,12 @@ def node_id(name):
     return int(regex.group(1)), int(regex.group(3) or 0)
 
 
-def draw_graph(graph, dimensions, max_p):
-    positions = {}
-    for node in graph.nodes():
-        i, j = node_id(node)
-        positions[node] = (max_p-j, dimensions-i)
+def draw_graph(graph, dimensions, max_p, positions=None):
+    if positions is None:
+        positions = {}
+        for node in graph.nodes():
+            i, j = node_id(node)
+            positions[node] = (max_p-j, dimensions-i)
     nx.draw(graph, positions, with_labels=True, font_size=10, node_size=1000)
     rounded_labels = dict([(k, round(v, 2)) for k, v in nx.get_edge_attributes(graph, 'weight').items()])
     nx.draw_networkx_edge_labels(
