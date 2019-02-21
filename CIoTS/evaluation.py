@@ -108,12 +108,12 @@ def evaluate_parameters(true_params, est_params, eval_type='mse_full'):
     assert true_params.shape[1] == est_params.shape[1]
     if true_params.shape[0] < est_params.shape[0]:
         missing = est_params.shape[0] - true_params.shape[0]
-        true_params = np.append(true_params, 
+        true_params = np.append(true_params,
                                 np.zeros((missing, true_params.shape[1])),
                                 axis=0)
     elif true_params.shape[0] > est_params.shape[0]:
         missing = true_params.shape[0] - est_params.shape[0]
-        est_params = np.append(est_params, 
+        est_params = np.append(est_params,
                                np.zeros((missing, est_params.shape[1])),
                                axis=0)
 
