@@ -67,7 +67,7 @@ class VAR():
         self.residuals = y - np.dot(X_, self.params)
         self.sse = np.dot(self.residuals.T, self.residuals)
         # not sure whether this is ok
-        self.sigma_u = self.sse/self.length
+        self.sigma_u = self.sse / self.length
         self.is_fitted = True
 
     def to_graph(self, threshold=0.1):
