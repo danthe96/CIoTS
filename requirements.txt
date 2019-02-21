@@ -8,6 +8,7 @@ pcalg
 scipy
 sklearn
 statsmodels
+-e git+https://github.com/jakobrunge/tigramite.git#egg=tigramite
 
 # CircleCI
 flake8
