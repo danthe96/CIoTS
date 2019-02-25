@@ -45,8 +45,8 @@ class CausalTSGenerator:
         self.autocorrelation = autocorrelation
         self.coupling_coeff = coupling_coeff
 
-        min_edges = (dimensions if autocorrelation else 0)
-        max_edges = dimensions * (dimensions - 1) * max_p + (dimensions if autocorrelation else 0)
+        min_edges = 0
+        max_edges = dimensions * (dimensions - (0 if self.autocorrelation else 1)) * max_p
         self.edge_count = round(graph_density * dimensions * dimensions * max_p)
         if self.edge_count > max_edges or self.edge_count < min_edges:
             raise Exception(f'Edge count {self.edge_count} not in valid interval of ({min_edges}, {max_edges})')
@@ -80,7 +80,7 @@ class CausalTSGenerator:
         stable_var = False
         while not stable_var:
             print('Not stable')
-            VAR_exog = self._generate_dense_random_graph()
+            VAR_exog = self._generate_fully_random_graph()
             stable_var = is_stable(VAR_exog[::-1])
         self.VAR_exog = VAR_exog
 
@@ -202,6 +202,38 @@ class CausalTSGenerator:
             self.graph.add_edge(node_name(from_d, tau), node_name(to_d, 0), weight=np.random.choice([-c, c]))
             cur_edge_count += 1
         assert cur_edge_count == self.edge_count
+
+        adjacency = np.array(nx.adjacency_matrix(self.graph).todense())
+        VAR_exog = []
+        target = [self.max_p + d * self.length for d in range(self.dimensions)]
+        for i in range(self.max_p):
+            source = [i + d * self.length for d in range(self.dimensions)]
+            VAR_exog.append(adjacency[:, target][source].T)
+        return np.array(VAR_exog)
+
+    # Ignores autocorrelation
+    def _generate_fully_random_graph(self):
+        c = self.coupling_coeff
+
+        self.graph = nx.DiGraph()
+        node_ids = list(product([d for d in range(self.dimensions)],
+                                [l for l in reversed(range(self.max_p+1))]))
+        self.graph.add_nodes_from([node_name(*n) for n in node_ids])
+
+        dim_prod = product(np.arange(self.dimensions), np.arange(self.dimensions)) if self.autocorrelation \
+            else permutations(np.arange(self.dimensions), 2)
+        candidates = list(product(dim_prod, np.arange(self.max_p) + 1))
+
+        # Ensure max_p is utilized
+        d_t = np.random.choice(self.dimensions)
+        d_p = np.random.choice([d for d in range(self.dimensions) if d != d_t])
+        candidates.remove(((d_p, d_t), self.max_p))
+        self.graph.add_edge(node_name(d_p, self.max_p), node_name(d_t, 0), weight=np.random.choice([-c, c]))
+
+        edge_idxs = np.random.choice(len(candidates), size=(self.edge_count - 1,), replace=False)
+        for edge_idx in edge_idxs:
+            (from_d, to_d), tau = candidates[edge_idx]
+            self.graph.add_edge(node_name(from_d, tau), node_name(to_d, 0), weight=np.random.choice([-c, c]))
 
         adjacency = np.array(nx.adjacency_matrix(self.graph).todense())
         VAR_exog = []
