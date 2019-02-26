@@ -225,8 +225,7 @@ class CausalTSGenerator:
         candidates = list(product(dim_prod, np.arange(self.max_p) + 1))
 
         # Ensure max_p is utilized
-        d_t = np.random.choice(self.dimensions)
-        d_p = np.random.choice([d for d in range(self.dimensions) if d != d_t])
+        d_t, d_p = np.random.choice(self.dimensions, size=2)
         candidates.remove(((d_p, d_t), self.max_p))
         self.graph.add_edge(node_name(d_p, self.max_p), node_name(d_t, 0), weight=np.random.choice([-c, c]))
 
