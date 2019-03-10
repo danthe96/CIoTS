@@ -229,10 +229,11 @@ class CausalTSGenerator:
         candidates.remove(((d_p, d_t), self.max_p))
         self.graph.add_edge(node_name(d_p, self.max_p), node_name(d_t, 0), weight=np.random.choice([-c, c]))
 
-        edge_idxs = np.random.choice(len(candidates), size=(self.edge_count - 1,), replace=False)
-        for edge_idx in edge_idxs:
-            (from_d, to_d), tau = candidates[edge_idx]
-            self.graph.add_edge(node_name(from_d, tau), node_name(to_d, 0), weight=np.random.choice([-c, c]))
+        if len(candidates) > 0:
+            edge_idxs = np.random.choice(len(candidates), size=(self.edge_count - 1,), replace=False)
+            for edge_idx in edge_idxs:
+                (from_d, to_d), tau = candidates[edge_idx]
+                self.graph.add_edge(node_name(from_d, tau), node_name(to_d, 0), weight=np.random.choice([-c, c]))
 
         adjacency = np.array(nx.adjacency_matrix(self.graph).todense())
         VAR_exog = []
