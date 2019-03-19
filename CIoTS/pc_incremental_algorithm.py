@@ -155,7 +155,7 @@ def pc1_step3(G, present_nodes, data_matrix, corr_matrix,
         max_cond_size = max_cond
         condition_size = 0
         # PC_1
-        while condition_size < max_cond_size and condition_size < len(parents) - 1:
+        while condition_size < max_cond_size and condition_size <= len(parents) - 1:
             parent_stats = defaultdict(lambda: float('inf'))
             for x in parents:
                 other_parents = [e for e in parents if e != x]
