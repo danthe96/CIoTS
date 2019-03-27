@@ -36,7 +36,7 @@ def draw_graph(graph, dimensions, max_p, positions=None):
 class CausalTSGenerator:
 
     def __init__(self, dimensions, max_p, data_length=1000, graph_density=0.1,
-                 random_state=None, autocorrelation=False, coupling_coeff=0.4):
+                 random_state=None, autocorrelation=True, coupling_coeff=0.4, noise_std=1):
         self.dimensions = dimensions
         self.max_p = max_p
         self.length = max_p + 1
@@ -44,6 +44,7 @@ class CausalTSGenerator:
         self.graph_density = graph_density
         self.autocorrelation = autocorrelation
         self.coupling_coeff = coupling_coeff
+        self.noise_std = noise_std
 
         min_edges = 0
         max_edges = dimensions * (dimensions - (0 if self.autocorrelation else 1)) * max_p
@@ -69,7 +70,7 @@ class CausalTSGenerator:
 
         for _ in range(self.data_length):
             X_t = np.sum([np.dot(self.VAR_exog[-i], X[:, -i]) for i in range(1, self.max_p+1)], axis=0) + \
-                  np.random.normal()
+                  np.random.normal(scale=self.noise_std)
             X = np.append(X, np.expand_dims(X_t, axis=1), axis=1)
 
         X = X[:, self.max_p:]
