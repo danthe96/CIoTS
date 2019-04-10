@@ -9,8 +9,8 @@ from random import sample, seed
 from itertools import product, permutations
 
 
-def node_name(time_series, l):
-    return f'X{time_series}_t-{l}' if l > 0 else f'X{time_series}_t'
+def node_name(dim, tau):
+    return f'X{dim}_t-{tau}' if tau > 0 else f'X{dim}_t'
 
 
 def node_id(name):
@@ -246,3 +246,19 @@ class CausalTSGenerator:
 
     def draw_graph(self):
         draw_graph(self.graph, self.dimensions, self.max_p)
+
+    def fulltime_graph(self, fulltime_length=None):
+        if fulltime_length is None:
+            fulltime_length = 2 * self.max_p
+
+        fulltime_graph = nx.DiGraph()
+        node_ids = list(product([d for d in range(self.dimensions)],
+                                [l for l in reversed(range(fulltime_length + 1))]))
+        fulltime_graph.add_nodes_from([node_name(*n) for n in node_ids])
+        for from_node, to_node, edge_data in self.graph.edges(data=True):
+            dim_from, tau = node_id(from_node)
+            dim_to, _ = node_id(to_node)
+            for i in range(fulltime_length - tau + 1):
+                fulltime_graph.add_edge(node_name(dim_from, tau + i), node_name(dim_to, i),
+                                        weight=edge_data['weight'])
+        return fulltime_graph
