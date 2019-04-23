@@ -36,17 +36,26 @@ def draw_graph(graph, dimensions, max_p, positions=None):
 class CausalTSGenerator:
 
     def __init__(self, dimensions, max_p, data_length=1000, graph_density=0.1,
-                 random_state=None, autocorrelation=True, coupling_coeff=0.4, noise_std=1):
+                 random_state=None, autocorrelation=True, coupling_coeff=None, 
+                 draw_coupling=None, noise_std=1):
         self.dimensions = dimensions
         self.max_p = max_p
         self.length = max_p + 1
         self.data_length = data_length
         self.graph_density = graph_density
         self.autocorrelation = autocorrelation
-        self.coupling_coeff = coupling_coeff
         self.noise_std = noise_std
+        self.coupling_coeff = coupling_coeff
 
-        min_edges = 0
+        if coupling_coeff is not None:
+            self.draw_coupling = (lambda: np.random.choice([-coupling_coeff,
+                                                          +coupling_coeff]))
+        elif draw_coupling is not None:
+            self.draw_coupling = draw_coupling
+        else:
+            raise Exception('Either coupling_coeff or min_coupling and max_coupling has to be set')
+
+        min_edges = 1
         max_edges = dimensions * (dimensions - (0 if self.autocorrelation else 1)) * max_p
         self.edge_count = round(graph_density * dimensions * dimensions * max_p)
         if self.edge_count > max_edges or self.edge_count < min_edges:
@@ -214,8 +223,6 @@ class CausalTSGenerator:
 
     # Ignores autocorrelation
     def _generate_fully_random_graph(self):
-        c = self.coupling_coeff
-
         self.graph = nx.DiGraph()
         node_ids = list(product([d for d in range(self.dimensions)],
                                 [l for l in reversed(range(self.max_p+1))]))
@@ -228,13 +235,13 @@ class CausalTSGenerator:
         # Ensure max_p is utilized
         d_t, d_p = np.random.choice(self.dimensions, size=2)
         candidates.remove(((d_p, d_t), self.max_p))
-        self.graph.add_edge(node_name(d_p, self.max_p), node_name(d_t, 0), weight=np.random.choice([-c, c]))
+        self.graph.add_edge(node_name(d_p, self.max_p), node_name(d_t, 0), weight=self.draw_coupling())
 
         if len(candidates) > 0:
             edge_idxs = np.random.choice(len(candidates), size=(self.edge_count - 1,), replace=False)
             for edge_idx in edge_idxs:
                 (from_d, to_d), tau = candidates[edge_idx]
-                self.graph.add_edge(node_name(from_d, tau), node_name(to_d, 0), weight=np.random.choice([-c, c]))
+                self.graph.add_edge(node_name(from_d, tau), node_name(to_d, 0), weight=self.draw_coupling())
 
         adjacency = np.array(nx.adjacency_matrix(self.graph).todense())
         VAR_exog = []
