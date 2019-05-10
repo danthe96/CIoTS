@@ -177,10 +177,19 @@ def pc1_step3(G, present_nodes, data_matrix, corr_matrix,
 
 
 def pc_incremental_pc1(indep_test, ts, alpha=0.05, max_p=20, start=0, steps=1,
-                       use_stopper=True, stopper=None, verbose=False, max_cond=float('inf'), **kwargs):
+                       use_stopper=True, stopper=None, verbose=False, max_cond=float('inf'), extensive=False, **kwargs):
     def step3(G, present_nodes, data_matrix, corr_matrix):
-        pc1_step3(G, present_nodes, data_matrix, corr_matrix,
-                  indep_test, max_cond, alpha, verbose)
+        if not extensive:
+            pc1_step3(G, present_nodes, data_matrix, corr_matrix,
+                      indep_test, max_cond, alpha, verbose)
+        else:
+            num_edges = np.inf
+            new_num_edges = len(G.edges())
+            while num_edges > new_num_edges:
+                pc1_step3(G, present_nodes, data_matrix, corr_matrix,
+                          indep_test, max_cond, alpha, verbose)
+                num_edges = new_num_edges
+                new_num_edges = len(G.edges())
 
     return _base_incremental(indep_test, ts, step3, alpha=alpha, max_tau=max_p, start=start, steps=steps,
                              use_stopper=use_stopper, stopper=stopper, verbose=verbose, **kwargs)
